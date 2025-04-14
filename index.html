@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temporizador</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+  <!-- Container principal que centraliza o temporizador -->
+  <div class="container">
+    <!-- Área do temporizador com os três grupos: horas, minutos e segundos -->
+    <div class="timer">
+      <div class="time-group">
+  <span class="time-label">horas</span>
+  <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+</div>
+<div class="separator">:</div>
+<div class="time-group">
+  <span class="time-label">minutos</span>
+  <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+</div>
+<div class="separator">:</div>
+<div class="time-group">
+  <span class="time-label">segundos</span>
+  <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+</div>
+    </div>
+    <!-- Botão play/pause que alterna conforme o estado do temporizador -->
+    <button id="toggle" class="toggle-btn"></button>
+  </div>
+  
+  <!-- Container para confetes -->
+  <div id="confetti-container"></div>
+  
+  <!-- Botão de troca de tema, posicionado de forma sutil no canto inferior direito -->
+  <button id="themeToggle" class="theme-toggle"></button>
+</body>
+</html>
