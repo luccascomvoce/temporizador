@@ -62,30 +62,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Adiciona event listeners para os métodos de alteração de tempo
-  Object.values(timeInputs).forEach(input => {
-    // Listener de roda do mouse
-    input.addEventListener('wheel', function(event) {
-      event.preventDefault();
-      modifyTimeInput(this, event.deltaY > 0 ? 1 : -1);
-    });
-
-    // Listener de setas do teclado
-    input.addEventListener('keydown', function(event) {
-      if (event.key === "ArrowUp") modifyTimeInput(this, 1);
-      else if (event.key === "ArrowDown") modifyTimeInput(this, -1);
-    });
-
-    // Listener de perda de foco (blur)
-    input.addEventListener('blur', function() {
-      normalizeInputValue(this);
-    });
-
-    // Listener de foco (focus) para selecionar automaticamente o conteúdo
-    input.addEventListener('focus', function() {
-      this.select();
-    });
+// Adiciona event listeners para os métodos de alteração de tempo
+Object.values(timeInputs).forEach((input, index, inputsArray) => {
+  // Listener de roda do mouse
+  input.addEventListener('wheel', function(event) {
+    event.preventDefault();
+    modifyTimeInput(this, event.deltaY > 0 ? 1 : -1);
   });
+
+  // Listener de setas do teclado (inclui navegação com esquerda e direita)
+  input.addEventListener('keydown', function(event) {
+    if (!isRunning) {
+      // Manipula as setas para cima e para baixo (modificação de valores)
+      if (event.key === "ArrowUp") {
+        modifyTimeInput(this, 1); // Aumenta o valor atual
+      } else if (event.key === "ArrowDown") {
+        modifyTimeInput(this, -1); // Diminui o valor atual
+      }
+
+      // Manipula as setas para a esquerda e para a direita (navegação entre campos)
+      else if (event.key === "ArrowLeft") {
+        // Move o foco para o campo anterior (ou volta para o último campo se no primeiro)
+        const previousIndex = (index - 1 + inputsArray.length) % inputsArray.length;
+        inputsArray[previousIndex].focus();
+        setTimeout(() => inputsArray[previousIndex].select(), 0); // Seleciona o texto
+      } else if (event.key === "ArrowRight") {
+        // Move o foco para o próximo campo (ou volta para o primeiro campo se no último)
+        const nextIndex = (index + 1) % inputsArray.length;
+        inputsArray[nextIndex].focus();
+        setTimeout(() => inputsArray[nextIndex].select(), 0); // Seleciona o texto
+      }
+    }
+  });
+
+  // Listener de perda de foco (blur)
+  input.addEventListener('blur', function() {
+    normalizeInputValue(this);
+  });
+
+  // Listener de foco (focus) para selecionar automaticamente o conteúdo
+  input.addEventListener('focus', function() {
+    this.select();
+  });
+});
 
   /**
    * Recupera o tempo total (em segundos) com base nos valores dos inputs.
