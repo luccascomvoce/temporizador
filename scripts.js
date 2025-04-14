@@ -155,6 +155,36 @@ Object.values(timeInputs).forEach((input, index, inputsArray) => {
     }
   }
 
+// Listener global para a tecla espaço (inicia ou pausa o temporizador)
+document.addEventListener('keydown', function(event) {
+  // Verifica se a tecla pressionada foi espaço
+  if (event.code === "Space") {
+    event.preventDefault(); // Evita o comportamento padrão de rolagem para baixo
+
+    // Verifica se o foco está em um input (horas, minutos, segundos)
+    if (event.target.matches('input')) {
+      // Impede que o espaço seja tratado como caractere de entrada e continua
+      event.target.blur(); // Remove o foco temporariamente para acionar play/pause
+    }
+
+    // Alterna entre iniciar e pausar o temporizador
+    if (isRunning) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+      updateInputsReadOnly();
+    } else {
+      let totalSeconds = getTotalSeconds();
+      if (totalSeconds > 0) {
+        isRunning = true;
+        updateInputsReadOnly();
+        toggleBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        timerInterval = setInterval(tick, 1000);
+      }
+    }
+  }
+});
+
   /**
    * Evento de clique para o botão play/pause.
    */
