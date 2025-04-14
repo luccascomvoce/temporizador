@@ -21,6 +21,68 @@ document.addEventListener('DOMContentLoaded', function() {
     return num.toString().padStart(2, '0');
   }
 
+  [hoursInput, minutesInput, secondsInput].forEach(input => {
+    input.addEventListener('wheel', function(event) {
+      if (!isRunning) { // Só permite a rolagem enquanto o temporizador estiver pausado
+        event.preventDefault(); // Evita o comportamento padrão de rolagem da página
+  
+        const currentValue = parseInt(this.value, 10) || 0; // Valor atual do input
+        let newValue = currentValue;
+        
+        if (this.id === "seconds") {
+          // Rolagem para segundos
+          if (event.deltaY < 0) {
+            // Rolagem para cima: diminui 1
+            newValue = currentValue - 1;
+            if (newValue < 0) {
+              newValue = 59; // Reinicia para 59
+              const minutesValue = parseInt(minutesInput.value, 10) || 0;
+              minutesInput.value = pad(Math.max(0, minutesValue - 1)); // Diminui minutos
+            }
+          } else if (event.deltaY > 0) {
+            // Rolagem para baixo: aumenta 1
+            newValue = currentValue + 1;
+            if (newValue > 59) {
+              newValue = 0; // Reinicia para 0
+              const minutesValue = parseInt(minutesInput.value, 10) || 0;
+              minutesInput.value = pad(Math.min(59, minutesValue + 1)); // Aumenta minutos
+            }
+          }
+        } else if (this.id === "minutes") {
+          // Rolagem para minutos
+          if (event.deltaY < 0) {
+            // Rolagem para cima: diminui 1
+            newValue = currentValue - 1;
+            if (newValue < 0) {
+              newValue = 59; // Reinicia para 59
+              const hoursValue = parseInt(hoursInput.value, 10) || 0;
+              hoursInput.value = pad(Math.max(0, hoursValue - 1)); // Diminui horas
+            }
+          } else if (event.deltaY > 0) {
+            // Rolagem para baixo: aumenta 1
+            newValue = currentValue + 1;
+            if (newValue > 59) {
+              newValue = 0; // Reinicia para 0
+              const hoursValue = parseInt(hoursInput.value, 10) || 0;
+              hoursInput.value = pad(Math.min(99, hoursValue + 1)); // Aumenta horas
+            }
+          }
+        } else if (this.id === "hours") {
+          // Rolagem para horas
+          if (event.deltaY < 0) {
+            // Rolagem para cima: diminui 1
+            newValue = Math.max(0, currentValue - 1);
+          } else if (event.deltaY > 0) {
+            // Rolagem para baixo: aumenta 1
+            newValue = Math.min(99, currentValue + 1);
+          }
+        }
+  
+        this.value = pad(newValue); // Atualiza o valor formatado
+      }
+    });
+  });
+
   // Evento para formatar os inputs assim que perdem o foco,
   // garantindo que valores como "5" sejam exibidos como "05"
   [hoursInput, minutesInput, secondsInput].forEach(input => {
