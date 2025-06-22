@@ -21,6 +21,7 @@ body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
+  overflow: hidden;
 }
 
 body.light-theme {
