@@ -4,6 +4,7 @@ Temporizador feito por IA usando HTML, CSS e JS. Os principais recursos são:
    a) girando a roda do mouse sobre o campo desejado;
    b) usando as setas do teclado;
    c) digitando normalmente pelo teclado.
-3. Efeito de confetes quando o temporizador chega a zero
-4. Efeito de transição ao alterar tema
-5. Em dispositivos móveis, exige do sistema o uso do teclado numérico
+   d) deslizando o dedo em telas sensíveis ao toque
+4. Efeito de confetes quando o temporizador chega a zero
+5. Efeito de transição ao alterar tema
+6. Em dispositivos móveis, exige do sistema o uso do teclado numérico
