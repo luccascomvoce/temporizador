@@ -103,11 +103,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   Object.values(timeInputs).forEach((input, index, inputsArray) => {
+    let startY;
+    let isSwiping = false; // Diferencia toque e deslize
     input.addEventListener('wheel', e => {
       e.preventDefault();
       modifyTimeInput(input, e.deltaY > 0 ? 1 : -1);
     });
+    input.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+      isSwiping = false; // Reset the flag
+    });
+    input.addEventListener('touchmove', e => {
+      if (isRunning) return; // Prevent swipe when timer is running
 
+      const currentY = e.touches[0].clientY;
+      const deltaY = startY - currentY; // Positive for upward swipe, negative for downward
+
+      // Only consider it a swipe if the movement is significant
+      if (Math.abs(deltaY) > 10) { // Threshold for swipe detection
+        isSwiping = true;
+        e.preventDefault(); // Prevent scrolling the page
+        modifyTimeInput(input, deltaY > 0 ? 1 : -1);
+        startY = currentY; // Update startY to allow continuous swiping
+      }
+    }, { passive: false }); // Use { passive: false } to allow preventDefault
+    input.addEventListener('touchend', e => {
+      if (isSwiping) {
+        e.preventDefault(); // Prevent the input from gaining focus after a swipe
+      }
+      isSwiping = false; // Reset the flag
+    });
     input.addEventListener('keydown', e => {
       if (!isRunning) {
         switch (e.key) {
