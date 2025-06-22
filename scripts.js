@@ -1,9 +1,9 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // Variáveis de controle do temporizador
+// scripts.js
+
+document.addEventListener('DOMContentLoaded', () => {
   let timerInterval;
   let isRunning = false;
 
-  // Referências aos elementos do DOM agrupadas em um objeto
   const timeInputs = {
     hours: document.getElementById('hours'),
     minutes: document.getElementById('minutes'),
@@ -13,23 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const toggleBtn = document.getElementById('toggle');
   const themeToggle = document.getElementById('themeToggle');
 
-  // Inicializa os ícones dos botões imediatamente após o carregamento
-  toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-  themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
-
-  /**
-   * Adiciona zeros à esquerda para manter sempre 2 dígitos.
-   */
-  function pad(num) {
+  function padZero(num) {
     return num.toString().padStart(2, '0');
   }
 
-  /**
-   * Normaliza os valores dos inputs com base em seus limites máximos e mínimos.
-   * @param {HTMLElement} input - O elemento de input a ser normalizado.
-   */
   function normalizeInputValue(input) {
-    let currentValue = parseInt(input.value, 10) || 0;
+    const value = parseInt(input.value, 10) || 0;
     const limits = {
       hours: { min: 0, max: 99, next: null },
       minutes: { min: 0, max: 59, next: timeInputs.hours },
@@ -38,78 +27,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const { min, max, next } = limits[input.id];
 
-    if (currentValue < min) {
-      input.value = pad(max);
-      if (next) next.value = pad(Math.max(min, parseInt(next.value, 10) - 1));
-    } else if (currentValue > max) {
-      input.value = pad(min);
-      if (next) next.value = pad(Math.min(max, parseInt(next.value, 10) + 1));
+    if (value < min) {
+      input.value = padZero(max);
+      if (next) next.value = padZero(Math.max(min, parseInt(next.value, 10) - 1));
+    } else if (value > max) {
+      input.value = padZero(min);
+      if (next) next.value = padZero(Math.min(max, parseInt(next.value, 10) + 1));
     } else {
-      input.value = pad(currentValue);
+      input.value = padZero(value);
     }
   }
 
-  /**
-   * Modifica um input de tempo em função de um delta positivo ou negativo.
-   * @param {HTMLElement} input - O campo de tempo a ser modificado.
-   * @param {number} delta - O valor a ser adicionado ou subtraído.
-   */
   function modifyTimeInput(input, delta) {
     if (!isRunning) {
-      let currentValue = parseInt(input.value, 10) || 0;
-      input.value = pad(currentValue + delta);
+      const currentValue = parseInt(input.value, 10) || 0;
+      input.value = padZero(currentValue + delta);
       normalizeInputValue(input);
     }
   }
 
-// Adiciona event listeners para os métodos de alteração de tempo
-Object.values(timeInputs).forEach((input, index, inputsArray) => {
-  // Listener de roda do mouse
-  input.addEventListener('wheel', function(event) {
-    event.preventDefault();
-    modifyTimeInput(this, event.deltaY > 0 ? 1 : -1);
-  });
-
-  // Listener de setas do teclado (inclui navegação com esquerda e direita)
-  input.addEventListener('keydown', function(event) {
-    if (!isRunning) {
-      // Manipula as setas para cima e para baixo (modificação de valores)
-      if (event.key === "ArrowUp") {
-        modifyTimeInput(this, 1); // Aumenta o valor atual
-      } else if (event.key === "ArrowDown") {
-        modifyTimeInput(this, -1); // Diminui o valor atual
-      }
-
-      // Manipula as setas para a esquerda e para a direita (navegação entre campos)
-      else if (event.key === "ArrowLeft") {
-        // Move o foco para o campo anterior (ou volta para o último campo se no primeiro)
-        const previousIndex = (index - 1 + inputsArray.length) % inputsArray.length;
-        inputsArray[previousIndex].focus();
-        setTimeout(() => inputsArray[previousIndex].select(), 0); // Seleciona o texto
-      } else if (event.key === "ArrowRight") {
-        // Move o foco para o próximo campo (ou volta para o primeiro campo se no último)
-        const nextIndex = (index + 1) % inputsArray.length;
-        inputsArray[nextIndex].focus();
-        setTimeout(() => inputsArray[nextIndex].select(), 0); // Seleciona o texto
-      }
-    }
-  });
-
-  // Listener de perda de foco (blur)
-  input.addEventListener('blur', function() {
-    normalizeInputValue(this);
-  });
-
-  // Listener de foco (focus) para selecionar automaticamente o conteúdo
-  input.addEventListener('focus', function() {
-    this.select();
-  });
-});
-
-  /**
-   * Recupera o tempo total (em segundos) com base nos valores dos inputs.
-   */
-  function getTotalSeconds() {
+  function getInputAsSeconds() {
     return (
       parseInt(timeInputs.hours.value, 10) * 3600 +
       parseInt(timeInputs.minutes.value, 10) * 60 +
@@ -117,127 +54,142 @@ Object.values(timeInputs).forEach((input, index, inputsArray) => {
     ) || 0;
   }
 
-  /**
-   * Atualiza os inputs com base no total de segundos fornecido.
-   */
-  function setInputsFromTotal(totalSeconds) {
-    timeInputs.hours.value = pad(Math.floor(totalSeconds / 3600));
-    timeInputs.minutes.value = pad(Math.floor((totalSeconds % 3600) / 60));
-    timeInputs.seconds.value = pad(totalSeconds % 60);
+  function updateInputsFromSeconds(totalSeconds) {
+    timeInputs.hours.value = padZero(Math.floor(totalSeconds / 3600));
+    timeInputs.minutes.value = padZero(Math.floor((totalSeconds % 3600) / 60));
+    timeInputs.seconds.value = padZero(totalSeconds % 60);
   }
 
-  /**
-   * Controla se os inputs dos dígitos estão editáveis ou não,
-   * conforme o estado do temporizador.
-   */
   function updateInputsReadOnly() {
-    Object.values(timeInputs).forEach(input => input.readOnly = isRunning);
+    Object.values(timeInputs).forEach(input => {
+      input.readOnly = isRunning;
+    });
   }
 
-  /**
-   * Função executada a cada segundo para atualizar a contagem.
-   */
-  function tick() {
-    let totalSeconds = getTotalSeconds();
-  
+  function updateButtonIcons() {
+    toggleBtn.innerHTML = `<i class="bi bi-${isRunning ? 'pause-fill' : 'play-fill'}"></i>`;
+    themeToggle.innerHTML = `<i class="bi bi-${document.body.classList.contains('light-theme') ? 'moon-fill' : 'sun-fill'}"></i>`;
+  }
+
+  function toggleTimer() {
+    const totalSeconds = getInputAsSeconds();
+
+    if (isRunning) {
+      clearInterval(timerInterval);
+      isRunning = false;
+    } else if (totalSeconds > 0) {
+      isRunning = true;
+      timerInterval = setInterval(decrementTimer, 1000);
+    }
+
+    updateInputsReadOnly();
+    updateButtonIcons();
+  }
+
+  function decrementTimer() {
+    let totalSeconds = getInputAsSeconds();
     if (totalSeconds > 0) {
-      totalSeconds--; // Decrementa imediatamente
-      setInputsFromTotal(totalSeconds);
-  
+      totalSeconds--;
+      updateInputsFromSeconds(totalSeconds);
+
       if (totalSeconds === 0) {
-        // Assim que chegar em zero, para o temporizador e exibe os confetes
         clearInterval(timerInterval);
         isRunning = false;
-        toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
         updateInputsReadOnly();
+        updateButtonIcons();
         launchConfetti();
       }
     }
   }
 
-// Listener global para a tecla espaço (inicia ou pausa o temporizador)
-document.addEventListener('keydown', function(event) {
-  // Verifica se a tecla pressionada foi espaço
-  if (event.code === "Space") {
-    event.preventDefault(); // Evita o comportamento padrão de rolagem para baixo
+  Object.values(timeInputs).forEach((input, index, inputsArray) => {
+    input.addEventListener('wheel', e => {
+      e.preventDefault();
+      modifyTimeInput(input, e.deltaY > 0 ? 1 : -1);
+    });
 
-    // Verifica se o foco está em um input (horas, minutos, segundos)
-    if (event.target.matches('input')) {
-      // Impede que o espaço seja tratado como caractere de entrada e continua
-      event.target.blur(); // Remove o foco temporariamente para acionar play/pause
-    }
-
-    // Alterna entre iniciar e pausar o temporizador
-    if (isRunning) {
-      clearInterval(timerInterval);
-      isRunning = false;
-      toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-      updateInputsReadOnly();
-    } else {
-      let totalSeconds = getTotalSeconds();
-      if (totalSeconds > 0) {
-        isRunning = true;
-        updateInputsReadOnly();
-        toggleBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        timerInterval = setInterval(tick, 1000);
+    input.addEventListener('keydown', e => {
+      if (!isRunning) {
+        switch (e.key) {
+          case 'ArrowUp': modifyTimeInput(input, 1); break;
+          case 'ArrowDown': modifyTimeInput(input, -1); break;
+          case 'ArrowLeft':
+            inputsArray[(index - 1 + inputsArray.length) % inputsArray.length].focus();
+            break;
+          case 'ArrowRight':
+            inputsArray[(index + 1) % inputsArray.length].focus();
+            break;
+        }
       }
-    }
-  }
-});
+    });
 
-  /**
-   * Evento de clique para o botão play/pause.
-   */
-  toggleBtn.addEventListener('click', function() {
-    if (isRunning) {
-      clearInterval(timerInterval);
-      isRunning = false;
-      toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-      updateInputsReadOnly();
-    } else {
-      let totalSeconds = getTotalSeconds();
-      if (totalSeconds > 0) {
-        isRunning = true;
-        updateInputsReadOnly();
-        toggleBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        timerInterval = setInterval(tick, 1000);
-      }
+    input.addEventListener('blur', () => normalizeInputValue(input));
+    input.addEventListener('focus', () => input.select());
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (e.target.matches('input')) e.target.blur();
+      toggleTimer();
     }
   });
 
-  /**
-   * Lógica para alternância entre temas.
-   */
-  themeToggle.addEventListener('click', function() {
-    const isLight = document.body.classList.toggle('light-theme');
-    themeToggle.innerHTML = `<i class="bi bi-${isLight ? 'moon-fill' : 'sun-fill'}"></i>`;
+  toggleBtn.addEventListener('click', toggleTimer);
+
+  themeToggle.addEventListener('click', () => {
+    const isLight = document.body.classList.contains('light-theme');
+    const newColor = isLight ? '#000' : '#fff';
+
+    const circle = document.createElement('div');
+    circle.classList.add('theme-transition-circle');
+    circle.style.backgroundColor = newColor;
+
+    const diameter = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2) * 2;
+    circle.style.width = `${diameter}px`;
+    circle.style.height = `${diameter}px`;
+
+    const rect = themeToggle.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    circle.style.left = `${centerX}px`;
+    circle.style.top = `${centerY}px`;
+    circle.style.marginLeft = `-${diameter / 2}px`;
+    circle.style.marginTop = `-${diameter / 2}px`;
+
+    document.body.appendChild(circle);
+    circle.offsetWidth;
+    circle.classList.add('animate');
+
+    setTimeout(() => {
+      document.body.classList.toggle('light-theme');
+      updateButtonIcons();
+    }, 300);
+
+    circle.addEventListener('animationend', () => circle.remove());
   });
 
-  /**
-   * Função para lançar os confetes.
-   */
   function launchConfetti() {
     const container = document.getElementById('confetti-container');
-    const numberOfPieces = 100;
     const colors = ['#FFC107', '#FF5722', '#8BC34A', '#00BCD4', '#E91E63'];
 
-    for (let i = 0; i < numberOfPieces; i++) {
+    for (let i = 0; i < 100; i++) {
       const piece = document.createElement('div');
       piece.classList.add('confetti-piece');
-      piece.style.animationDelay = Math.random() + "s";
-
-      const side = Math.random() > 0.5 ? "left" : "right";
-      piece.style.left = side === "left" ? "0" : "100%";
-      const xShift = (Math.random() * 50 + 20) * (side === "left" ? 1 : -1) + "vw";
-      piece.style.setProperty('--xShift', xShift);
-      piece.style.setProperty('--rotation', (Math.random() * 720 - 360) + "deg");
-      piece.style.top = Math.floor(Math.random() * window.innerHeight) + "px";
-      piece.style.setProperty('--yPeak', "-" + (Math.random() * 30 + 10) + "vh");
+      piece.style.animationDelay = `${Math.random()}s`;
+      const side = Math.random() > 0.5 ? 'left' : 'right';
+      piece.style.left = side === 'left' ? '0' : '100%';
+      piece.style.setProperty('--xShift', `${(Math.random() * 50 + 20) * (side === 'left' ? 1 : -1)}vw`);
+      piece.style.setProperty('--rotation', `${Math.random() * 720 - 360}deg`);
+      piece.style.setProperty('--yPeak', `-${Math.random() * 30 + 10}vh`);
+      piece.style.top = `${Math.floor(Math.random() * window.innerHeight)}px`;
       piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
       container.appendChild(piece);
     }
 
-    setTimeout(() => container.innerHTML = "", 2000);
+    setTimeout(() => (container.innerHTML = ''), 2000);
   }
+
+  updateButtonIcons();
 });
