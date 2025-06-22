@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn = document.getElementById('toggle');
   const themeToggle = document.getElementById('themeToggle');
 
+  const timerStatus = document.getElementById('timer-status');
+
   function padZero(num) {
     return num.toString().padStart(2, '0');
   }
@@ -77,9 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isRunning) {
       clearInterval(timerInterval);
       isRunning = false;
+      timerStatus.textContent = 'O temporizador foi pausado.';
     } else if (totalSeconds > 0) {
       isRunning = true;
       timerInterval = setInterval(decrementTimer, 1000);
+      timerStatus.textContent = 'O temporizador começou.';
     }
 
     updateInputsReadOnly();
@@ -98,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInputsReadOnly();
         updateButtonIcons();
         launchConfetti();
+        timerStatus.textContent = 'O tempo acabou.'; // Anuncia que o tempo acabou
       }
     }
   }
@@ -190,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       document.body.classList.toggle('light-theme');
       updateButtonIcons();
+      document.body.focus();
     }, 300);
 
     circle.addEventListener('animationend', () => circle.remove());

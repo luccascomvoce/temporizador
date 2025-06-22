@@ -39,6 +39,8 @@ body.light-theme {
   align-items: flex-end;
   justify-content: center;
   gap: 10px;
+  outline: none;
+  border: none; 
 }
 
 .time-group {
@@ -172,4 +174,21 @@ body:not(.light-theme) .theme-toggle {
     transform: scale(1);
     opacity: 0;
   }
+}
+
+/* ============ Acessibilidade ============ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+fieldset.timer:focus-within {
+  outline: none;
 }

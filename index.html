@@ -9,24 +9,26 @@
   <link rel="stylesheet" href="styles.css">
   <script src="scripts.js" defer></script>
 </head>
-<body>
+<body tabindex="-1">
   <div class="container">
-    <div class="timer">
+    <fieldset class="timer">
+      <legend class="sr-only">Definir Tempo do Temporizador</legend>
       <div class="time-group">
-        <span class="time-label">horas</span>
+        <label for="hours" class="time-label">horas</label>
         <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
       </div>
-      <div class="separator">:</div>
+      <div class="separator" aria-hidden="true">:</div>
       <div class="time-group">
-        <span class="time-label">minutos</span>
+        <label for="minutes" class="time-label">minutos</label>
         <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
       </div>
-      <div class="separator">:</div>
+      <div class="separator" aria-hidden="true">:</div>
       <div class="time-group">
-        <span class="time-label">segundos</span>
+        <label for="seconds" class="time-label">segundos</label>
         <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
       </div>
-    </div>
+    </fieldset>
+    <div aria-live="polite" class="sr-only" id="timer-status"></div>
     <button id="toggle" class="toggle-btn" aria-label="Iniciar ou pausar cronômetro"></button>
   </div>
 
