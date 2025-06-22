@@ -1,4 +1,4 @@
-Cronômetro feito por IA usando HTML, CSS e JS. Os principais recursos são:
+Temporizador feito por IA usando HTML, CSS e JS. Os principais recursos são:
 1. Modos claro e escuro
 2. Diferentes formas de ajustar os tempos:
    a) girando a roda do mouse sobre o campo desejado;
