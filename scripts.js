@@ -12,8 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const toggleBtn = document.getElementById('toggle');
   const themeToggle = document.getElementById('themeToggle');
-
   const timerStatus = document.getElementById('timer-status');
+
+  const timerEndSound = document.getElementById('timerEndSound');
 
   function padZero(num) {
     return num.toString().padStart(2, '0');
@@ -102,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInputsReadOnly();
         updateButtonIcons();
         launchConfetti();
+        timerEndSound.play();
         timerStatus.textContent = 'O tempo acabou.'; // Anuncia que o tempo acabou
       }
     }
