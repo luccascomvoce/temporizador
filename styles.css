@@ -114,8 +114,8 @@ button {
 
 .theme-toggle {
   position: fixed;
-  right: env(safe-area-inset-right, 20px);
-  bottom: env(safe-area-inset-bottom, 20px);
+  right: 30px; /* Alterado para valor fixo para responsividade */
+  bottom: 30px; /* Alterado para valor fixo para responsividade */
   font-size: 1.5rem;
   z-index: 1001;
 }
