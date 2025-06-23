@@ -226,7 +226,7 @@ fieldset.timer:focus-within {
   .time-input {
     text-align: left; /* Alinha inputs à esquerda */
     font-size: clamp(4rem, 14vw, 10rem); /* Ajusta tamanho da fonte dos dígitos (2x maior) */
-    width: clamp(50px, 15vw, 100px); /* Ajusta largura dos campos de entrada */
+    width: clamp(50px, 20vw, 100px); /* Ajusta largura dos campos de entrada */
   }
 
   .separator {
