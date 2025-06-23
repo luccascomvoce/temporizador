@@ -13,6 +13,7 @@
 }
 
 body {
+  min-height: 100dvh;
   height: 100vh;
   font-family: Arial, sans-serif;
   display: flex;
@@ -22,8 +23,7 @@ body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 body.light-theme {
@@ -113,10 +113,11 @@ button {
 }
 
 .theme-toggle {
-  position: absolute;
-  bottom: 2vh;
-  right: 2vw;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   font-size: 1.5rem;
+  z-index: 1001;
 }
 
 .theme-toggle i {
@@ -252,13 +253,6 @@ fieldset.timer:focus-within {
     padding-left: 5px;
     padding-right: 5px;
   }
-
-  .theme-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 1.5rem;
-}
 
   .separator {
     display: none;
