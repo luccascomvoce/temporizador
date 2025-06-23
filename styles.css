@@ -12,6 +12,10 @@
   --color-text-light: #555;
 }
 
+html, body {
+  height: 100dvh; /* Garante que HTML e Body ocupem a altura dinâmica da viewport */
+}
+
 body {
   min-height: 100dvh;
   height: 100vh; /* Fallback for dvh */
@@ -22,7 +26,7 @@ body {
   justify-content: center;
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
-  position: relative; /* This is fine, doesn't break fixed positioning of children */
+  position: relative;
   overflow: hidden; /* Prevents scrollbars on the body */
 }
 
@@ -112,15 +116,29 @@ button {
   color: inherit;
 }
 
-.theme-toggle {
+/* Novo estilo para o rodapé fixo */
+.fixed-footer {
   position: fixed;
-  right: 30px;
-  bottom: 30px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px 30px; /* Adiciona padding para afastar o botão das bordas */
+  display: flex;
+  justify-content: flex-end; /* Alinha o conteúdo à direita */
+  align-items: center;
+  z-index: 1000; /* Garante que o rodapé esteja acima do conteúdo principal, mas abaixo do confetti */
+  /* Remove transform: translateZ(0) daqui, pois será aplicado no botão */
+}
+
+.theme-toggle {
+  position: relative; /* Posicionamento relativo ao fixed-footer */
   font-size: 1.5rem;
-  z-index: 1001;
-  /* Adição para forçar a renderização em uma nova camada e ajudar com problemas de posicionamento fixo em dispositivos móveis */
-  -webkit-transform: translateZ(0); /* Para navegadores baseados em WebKit (iOS Safari, Chrome) */
+  z-index: 1001; /* Ainda mais alto que o footer, para garantir */
+  /* Mantém as otimizações de renderização */
+  -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  will-change: transform, bottom, right;
+  /* Não precisa de right/bottom aqui, o padding do footer faz o afastamento */
 }
 
 .theme-toggle i {
@@ -259,5 +277,10 @@ fieldset.timer:focus-within {
 
   .separator {
     display: none;
+  }
+
+  /* Ajuste para o rodapé em proporções verticais agressivas, se necessário */
+  .fixed-footer {
+    padding: 10px 20px; /* Ajuste o padding para telas menores se desejar */
   }
 }
