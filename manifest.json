@@ -40,5 +40,35 @@
     }
   ],
   "orientation": "portrait",
-  "lang": "pt-BR"
+  "lang": "pt-BR",
+  "screenshots": [
+    {
+      "src": "/images/desktop-escuro.png",
+      "sizes": "1920x951",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Temporizador no desktop (tema escuro)"
+    },
+    {
+      "src": "/images/desktop-claro.png",
+      "sizes": "1920x951",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Temporizador no desktop (tema claro)"
+    },
+    {
+      "src": "/images/mobile-escuro.png",
+      "sizes": "500x950",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Temporizador no celular (tema escuro)"
+    },
+    {
+      "src": "/images/mobile-claro.png",
+      "sizes": "500x950",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Temporizador no celular (tema claro)"
+    }
+  ]
 }
