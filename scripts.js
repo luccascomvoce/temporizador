@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonIcons();
         launchConfetti();
         timerEndSound.play();
+        document.body.focus();
         timerStatus.textContent = 'O tempo acabou.'; // Anuncia que o tempo acabou
       }
     }
