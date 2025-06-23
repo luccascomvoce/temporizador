@@ -178,9 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
     circle.classList.add('theme-transition-circle');
     circle.style.backgroundColor = newColor;
 
-    const diameter = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2) * 2;
-    circle.style.width = `${diameter}px`;
-    circle.style.height = `${diameter}px`;
+    // Usar o menor entre largura e altura para limitar o tamanho do círculo
+    const maxDiameter = Math.min(window.innerWidth, window.innerHeight) * 1.5;
+    circle.style.width = `${maxDiameter}px`;
+    circle.style.height = `${maxDiameter}px`;
 
     const rect = themeToggle.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -188,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     circle.style.left = `${centerX}px`;
     circle.style.top = `${centerY}px`;
-    circle.style.marginLeft = `-${diameter / 2}px`;
-    circle.style.marginTop = `-${diameter / 2}px`;
+    circle.style.marginLeft = `-${maxDiameter / 2}px`;
+    circle.style.marginTop = `-${maxDiameter / 2}px`;
 
     document.body.appendChild(circle);
     circle.offsetWidth;

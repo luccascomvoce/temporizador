@@ -119,26 +119,20 @@ button {
 /* Novo estilo para o rodapé fixo */
 .fixed-footer {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 15px 30px; /* Adiciona padding para afastar o botão das bordas */
+  bottom: 1rem; /* Ajustado para garantir visibilidade */
+  right: 1rem; /* Ajustado para garantir visibilidade */
+  padding: 0; /* Removido padding, já que o botão já tem espaçamento */
   display: flex;
-  justify-content: flex-end; /* Alinha o conteúdo à direita */
+  justify-content: flex-end;
   align-items: center;
-  z-index: 1000; /* Garante que o rodapé esteja acima do conteúdo principal, mas abaixo do confetti */
-  /* Remove transform: translateZ(0) daqui, pois será aplicado no botão */
+  z-index: 1000;
+  overflow: hidden; /* Garante que nada no footer cause barras de rolagem */
 }
 
 .theme-toggle {
-  position: relative; /* Posicionamento relativo ao fixed-footer */
   font-size: 1.5rem;
-  z-index: 1001; /* Ainda mais alto que o footer, para garantir */
-  /* Mantém as otimizações de renderização */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  will-change: transform, bottom, right;
-  /* Não precisa de right/bottom aqui, o padding do footer faz o afastamento */
+  z-index: 1001;
+  color: inherit;
 }
 
 .theme-toggle i {
@@ -200,6 +194,7 @@ body:not(.light-theme) .theme-toggle {
   opacity: 0;
   z-index: 999;
   pointer-events: none;
+  overflow: hidden; /* Garante que o círculo não cause barras de rolagem */
 }
 
 .theme-transition-circle.animate {
@@ -279,8 +274,9 @@ fieldset.timer:focus-within {
     display: none;
   }
 
-  /* Ajuste para o rodapé em proporções verticais agressivas, se necessário */
   .fixed-footer {
-    padding: 10px 20px; /* Ajuste o padding para telas menores se desejar */
+    bottom: 1rem; /* Consistente com o valor padrão */
+    right: 1rem; /* Consistente com o valor padrão */
+    padding: 0; /* Mantém o padding zero */
   }
 }
