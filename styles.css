@@ -114,8 +114,8 @@ button {
 
 .theme-toggle {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  right: env(safe-area-inset-right, 20px);
+  bottom: env(safe-area-inset-bottom, 20px);
   font-size: 1.5rem;
   z-index: 1001;
 }
