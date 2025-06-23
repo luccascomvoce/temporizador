@@ -10,6 +10,8 @@
   --color-bg-light: #fff;
   --color-text-dark: #81d4fa;
   --color-text-light: #555;
+  --color-icon-dark: #ccc;
+  --color-border-radius: 12px;
 }
 
 /* Garante que html e body não causem barras de rolagem indesejadas */
@@ -121,28 +123,104 @@ button {
   color: inherit;
 }
 
-/* Novo estilo para o rodapé fixo */
 .fixed-footer {
   position: fixed;
-  bottom: 16px; /* Valor fixo para consistência */
-  right: 16px; /* Valor fixo para consistência */
+  bottom: 16px;
+  right: 16px;
   padding: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  z-index: 1002; /* Maior que o confetti-container */
+  z-index: 1002;
 }
 
-.theme-toggle {
-  position: relative;
-  width: 30px;
-  height: 30px;
-  overflow: hidden;
-  z-index: 1003;
+.settings-btn {
   color: inherit;
+  font-size: 24px;
 }
 
-.sun-icon, .moon-icon {
+.settings-btn i {
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.settings-btn.rotated i {
+  transform: rotate(45deg);
+}
+
+body.light-theme .time-label,
+body.light-theme .toggle-btn,
+body.light-theme .settings-btn {
+  color: var(--color-text-light);
+}
+
+body:not(.light-theme) .toggle-btn,
+body:not(.light-theme) .settings-btn {
+  color: var(--color-icon-dark);
+}
+
+/* ============ Settings Popup ============ */
+.settings-popup {
+  position: fixed;
+  bottom: 58px; /* Posição acima do botão de engrenagem */
+  right: 16px;
+  border-radius: var(--color-border-radius);
+  padding: 1rem;
+  display: none; /* Oculto por padrão */
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 1001;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: background-color 0.6s ease, color 0.6s ease, opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.settings-popup.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+body.light-theme .settings-popup {
+  background-color: var(--color-bg-light);
+  color: var(--color-text-light);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .settings-popup {
+  background-color: var(--color-text-light); /* Cor da engrenagem no modo claro */
+  color: var(--color-bg-light); /* Cor do texto no modo claro */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .settings-popup .setting-row {
+  color: var(--color-bg-light); /* Garante que os ícones e texto sejam claros */
+}
+
+body:not(.light-theme) .settings-popup {
+  background-color: var(--color-bg-light); /* Cor da engrenagem no modo escuro */
+  color: var(--color-text-light); /* Cor do texto no modo escuro */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  min-width: 180px;
+  gap: 20px;
+  font-size: 1rem;
+}
+
+.theme-toggle-icons, .sound-toggle-icons {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+}
+
+.sun-icon, .moon-icon, .sound-on-icon, .sound-off-icon {
   position: absolute;
   top: 0;
   left: 0;
@@ -151,47 +229,19 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* ATUALIZADO: Transição para escala (transform) e opacidade */
   transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.4s ease;
 }
 
-.theme-toggle i {
-  font-size: 24px; /* Ajustado para caber bem no botão */
-  color: inherit;
+.sound-off-icon {
+  display: none; /* Oculto por padrão */
 }
 
-/* ATUALIZADO: Lógica de animação com scale e opacity */
-/* Tema escuro: Mostra o Sol */
-body:not(.light-theme) .sun-icon {
-  transform: scale(1);
-  opacity: 1;
-}
-body:not(.light-theme) .moon-icon {
-  transform: scale(0);
-  opacity: 0;
-}
+/* Lógica de animação do tema com scale e opacity */
+body:not(.light-theme) .sun-icon { transform: scale(1); opacity: 1; }
+body:not(.light-theme) .moon-icon { transform: scale(0); opacity: 0; }
+body.light-theme .sun-icon { transform: scale(0); opacity: 0; }
+body.light-theme .moon-icon { transform: scale(1); opacity: 1; }
 
-/* Tema claro: Mostra a Lua */
-body.light-theme .sun-icon {
-  transform: scale(0);
-  opacity: 0;
-}
-body.light-theme .moon-icon {
-  transform: scale(1);
-  opacity: 1;
-}
-
-
-body.light-theme .theme-toggle,
-body.light-theme .time-label,
-body.light-theme .toggle-btn {
-  color: var(--color-text-light);
-}
-
-body:not(.light-theme) .toggle-btn,
-body:not(.light-theme) .theme-toggle {
-  color: #ccc;
-}
 
 /* ============ Confetti Animation ============ */
 #confetti-container {
@@ -201,8 +251,8 @@ body:not(.light-theme) .theme-toggle {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* CRUCIAL: Garante que os confetes não causem overflow */
-  z-index: 999; /* Menor que o fixed-footer */
+  overflow: hidden;
+  z-index: 999;
 }
 
 .confetti-piece {
@@ -214,20 +264,9 @@ body:not(.light-theme) .theme-toggle {
 }
 
 @keyframes eject {
-  0% {
-    transform: translate(0, 0) rotate(0deg); /* Explicitamente reset transform */
-    opacity: 1;
-  }
-  30% {
-    /* Initial arc - move towards the center/upwards */
-    transform: translateX(calc(var(--xShift) * 0.3)) translateY(var(--yPeak)) rotate(calc(var(--rotation) * 0.3));
-    opacity: 1;
-  }
-  100% {
-    /* Final position - move horizontally to xShift and fall vertically out of view */
-    transform: translateX(var(--xShift)) translateY(var(--yDrop)) rotate(var(--rotation));
-    opacity: 0;
-  }
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  30% { transform: translateX(calc(var(--xShift) * 0.3)) translateY(var(--yPeak)) rotate(calc(var(--rotation) * 0.3)); opacity: 1; }
+  100% { transform: translateX(var(--xShift)) translateY(var(--yDrop)) rotate(var(--rotation)); opacity: 0; }
 }
 
 /* ============ Theme Toggle Animation ============ */
@@ -236,7 +275,7 @@ body:not(.light-theme) .theme-toggle {
   border-radius: 50%;
   transform: scale(0);
   opacity: 0;
-  z-index: 998; /* Menor que o confetti-container */
+  z-index: 9999;
   pointer-events: none;
   overflow: hidden;
 }
@@ -246,14 +285,8 @@ body:not(.light-theme) .theme-toggle {
 }
 
 @keyframes expandCircle {
-  from {
-    transform: scale(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(1);
-    opacity: 0;
-  }
+  from { transform: scale(0); opacity: 1; }
+  to { transform: scale(1); opacity: 0; }
 }
 
 /* ============ Acessibilidade ============ */
@@ -269,58 +302,16 @@ body:not(.light-theme) .theme-toggle {
   border-width: 0;
 }
 
-fieldset.timer:focus-within {
-  outline: none;
-}
+fieldset.timer:focus-within { outline: none; }
 
 /* ============ Proporções Verticais Agressivas (altura > 16/9 * largura) ============ */
 @media (max-aspect-ratio: 9/16) {
-  .container {
-    padding-top: 3vh;
-    padding-bottom: 3vh;
-  }
-
-  .timer-wrapper {
-    gap: 2vh;
-  }
-
-  .timer {
-    flex-direction: column;
-    align-items: center;
-    gap: 2vh;
-    width: auto;
-  }
-
-  .time-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .time-label {
-    text-align: center;
-    margin-bottom: 1vh;
-    padding: 0;
-    font-size: clamp(0.9rem, 2vw, 1.5rem);
-  }
-
-  .time-input {
-    text-align: center;
-    font-size: clamp(4rem, 14vw, 10rem);
-    width: auto;
-    min-width: clamp(80px, 18vw, 150px);
-    box-sizing: border-box;
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-
-  .separator {
-    display: none;
-  }
-
-  .fixed-footer {
-    bottom: 16px;
-    right: 16px;
-    padding: 0;
-  }
+  .container { padding-top: 3vh; padding-bottom: 3vh; }
+  .timer-wrapper { gap: 2vh; }
+  .timer { flex-direction: column; align-items: center; gap: 2vh; width: auto; }
+  .time-group { display: flex; flex-direction: column; align-items: center; }
+  .time-label { text-align: center; margin-bottom: 1vh; padding: 0; font-size: clamp(0.9rem, 2vw, 1.5rem); }
+  .time-input { text-align: center; font-size: clamp(4rem, 14vw, 10rem); width: auto; min-width: clamp(80px, 18vw, 150px); box-sizing: border-box; padding-left: 5px; padding-right: 5px; }
+  .separator { display: none; }
+  .fixed-footer { bottom: 16px; right: 16px; padding: 0; }
 }
