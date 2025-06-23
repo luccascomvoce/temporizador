@@ -15,8 +15,10 @@
 body {
   height: 100vh;
   font-family: Arial, sans-serif;
-  display: grid;
-  place-items: center;
+  display: flex; /* Alterado para flex */
+  flex-direction: column; /* Organiza em coluna */
+  align-items: center; /* Centraliza horizontalmente */
+  justify-content: center; /* Centraliza verticalmente */
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
@@ -47,7 +49,7 @@ body.light-theme {
   gap: 1.5vw;
   outline: none;
   border: none;
-  margin-bottom: 3vh;
+  margin-bottom: 3vh; /* Mantido para o layout horizontal */
 }
 
 .time-group {
@@ -199,15 +201,15 @@ fieldset.timer:focus-within {
   outline: none;
 }
 
-/* ============ Proporções Verticais Agressivas (altura > 2 * largura) ============ */
-@media (max-aspect-ratio: 9/16) {
+/* ============ Proporções Verticais Agressivas (altura > 16/9 * largura) ============ */
+@media (max-aspect-ratio: 16/9) { /* Proporção 16:9 como limite para ativar o layout vertical */
   .timer {
     display: grid;
     grid-template-columns: auto auto; /* Duas colunas: rótulo | input */
     gap: 1.5vh 3vw; /* Espaçamento vertical entre linhas, horizontal entre colunas */
     align-items: center; /* Alinha verticalmente no centro */
     justify-content: center; /* Alinha horizontalmente no centro */
-    margin-bottom: 3vh; /* Mantém espaçamento para o botão abaixo */
+    margin-bottom: 0; /* Remove margem inferior para o container centralizar o grupo */
   }
 
   .time-group {
@@ -223,7 +225,7 @@ fieldset.timer:focus-within {
 
   .time-input {
     text-align: left; /* Alinha inputs à esquerda */
-    font-size: clamp(3rem, 10.5vw, 7.5rem); /* Ajusta tamanho da fonte dos dígitos */
+    font-size: clamp(4rem, 14vw, 10rem); /* Ajusta tamanho da fonte dos dígitos (2x maior) */
     width: clamp(50px, 15vw, 100px); /* Ajusta largura dos campos de entrada */
   }
 
