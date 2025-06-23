@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateButtonIcons() {
     toggleBtn.innerHTML = `<i class="bi bi-${isRunning ? 'pause-fill' : 'play-fill'}"></i>`;
-    themeToggle.innerHTML = `<i class="bi bi-${document.body.classList.contains('light-theme') ? 'moon-fill' : 'sun-fill'}"></i>`;
+    // A troca de ícone do tema agora é controlada puramente por CSS
   }
 
   function toggleTimer() {

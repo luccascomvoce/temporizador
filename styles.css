@@ -31,6 +31,8 @@ body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative; /* Necessário para elementos posicionados absolutamente dentro do body */
+  /* Adiciona transição suave para as cores do tema */
+  transition: background-color 0.6s ease, color 0.6s ease;
 }
 
 body.light-theme {
@@ -132,16 +134,53 @@ button {
 }
 
 .theme-toggle {
-  font-size: 1.5rem;
-  z-index: 1003; /* Garante que o botão fique acima de tudo */
+  position: relative;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  z-index: 1003;
   color: inherit;
-  font-weight: normal;
+}
+
+.sun-icon, .moon-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ATUALIZADO: Transição para escala (transform) e opacidade */
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.4s ease;
 }
 
 .theme-toggle i {
-  font-size: 30px;
+  font-size: 24px; /* Ajustado para caber bem no botão */
   color: inherit;
 }
+
+/* ATUALIZADO: Lógica de animação com scale e opacity */
+/* Tema escuro: Mostra o Sol */
+body:not(.light-theme) .sun-icon {
+  transform: scale(1);
+  opacity: 1;
+}
+body:not(.light-theme) .moon-icon {
+  transform: scale(0);
+  opacity: 0;
+}
+
+/* Tema claro: Mostra a Lua */
+body.light-theme .sun-icon {
+  transform: scale(0);
+  opacity: 0;
+}
+body.light-theme .moon-icon {
+  transform: scale(1);
+  opacity: 1;
+}
+
 
 body.light-theme .theme-toggle,
 body.light-theme .time-label,
