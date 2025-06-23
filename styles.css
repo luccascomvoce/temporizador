@@ -12,13 +12,17 @@
   --color-text-light: #555;
 }
 
+/* Garante que html e body não causem barras de rolagem indesejadas */
 html, body {
-  height: 100dvh; /* Garante que HTML e Body ocupem a altura dinâmica da viewport */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh; /* Usar 100dvh para altura dinâmica da viewport */
+  overflow: hidden; /* Impede qualquer rolagem no elemento raiz e no corpo */
 }
 
 body {
-  min-height: 100dvh;
-  height: 100vh; /* Fallback for dvh */
+  width: 100vw; /* Garante que o body não seja mais largo que o viewport */
   font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
@@ -26,8 +30,7 @@ body {
   justify-content: center;
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
-  position: relative;
-  overflow: hidden; /* Prevents scrollbars on the body */
+  position: relative; /* Necessário para elementos posicionados absolutamente dentro do body */
 }
 
 body.light-theme {
@@ -42,11 +45,11 @@ body.light-theme {
   align-items: center;
   justify-content: center;
   height: 100%;
-  max-height: 100vh;
+  max-height: 100vh; /* Garante que não exceda a altura da viewport */
   width: 100%;
-  max-width: 90vw;
-  padding: 2vh 2vw;
-  box-sizing: border-box;
+  max-width: 90vw; /* Garante que não exceda 90% da largura da viewport */
+  padding: 2vh 2vw; /* Adiciona algum preenchimento interno */
+  box-sizing: border-box; /* Inclui padding na largura/altura total */
 }
 
 .timer-wrapper {
@@ -64,7 +67,7 @@ body.light-theme {
   outline: none;
   border: none;
   margin-bottom: 0;
-  width: auto;
+  width: auto; /* Permite que a largura seja determinada pelo conteúdo */
 }
 
 .time-group {
@@ -119,20 +122,20 @@ button {
 /* Novo estilo para o rodapé fixo */
 .fixed-footer {
   position: fixed;
-  bottom: 1rem; /* Ajustado para garantir visibilidade */
-  right: 1rem; /* Ajustado para garantir visibilidade */
-  padding: 0; /* Removido padding, já que o botão já tem espaçamento */
+  bottom: 16px; /* Valor fixo para consistência */
+  right: 16px; /* Valor fixo para consistência */
+  padding: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  z-index: 1000;
-  overflow: hidden; /* Garante que nada no footer cause barras de rolagem */
+  z-index: 1002; /* Maior que o confetti-container */
 }
 
 .theme-toggle {
   font-size: 1.5rem;
-  z-index: 1001;
+  z-index: 1003; /* Garante que o botão fique acima de tudo */
   color: inherit;
+  font-weight: normal;
 }
 
 .theme-toggle i {
@@ -159,8 +162,8 @@ body:not(.light-theme) .theme-toggle {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  z-index: 1000;
+  overflow: hidden; /* CRUCIAL: Garante que os confetes não causem overflow */
+  z-index: 999; /* Menor que o fixed-footer */
 }
 
 .confetti-piece {
@@ -173,15 +176,17 @@ body:not(.light-theme) .theme-toggle {
 
 @keyframes eject {
   0% {
-    transform: translateX(0) translateY(0) rotate(0deg);
+    transform: translate(0, 0) rotate(0deg); /* Explicitamente reset transform */
     opacity: 1;
   }
   30% {
+    /* Initial arc - move towards the center/upwards */
     transform: translateX(calc(var(--xShift) * 0.3)) translateY(var(--yPeak)) rotate(calc(var(--rotation) * 0.3));
     opacity: 1;
   }
   100% {
-    transform: translateX(var(--xShift)) translateY(100vh) rotate(var(--rotation));
+    /* Final position - move horizontally to xShift and fall vertically out of view */
+    transform: translateX(var(--xShift)) translateY(var(--yDrop)) rotate(var(--rotation));
     opacity: 0;
   }
 }
@@ -192,9 +197,9 @@ body:not(.light-theme) .theme-toggle {
   border-radius: 50%;
   transform: scale(0);
   opacity: 0;
-  z-index: 999;
+  z-index: 998; /* Menor que o confetti-container */
   pointer-events: none;
-  overflow: hidden; /* Garante que o círculo não cause barras de rolagem */
+  overflow: hidden;
 }
 
 .theme-transition-circle.animate {
@@ -275,8 +280,8 @@ fieldset.timer:focus-within {
   }
 
   .fixed-footer {
-    bottom: 1rem; /* Consistente com o valor padrão */
-    right: 1rem; /* Consistente com o valor padrão */
-    padding: 0; /* Mantém o padding zero */
+    bottom: 16px;
+    right: 16px;
+    padding: 0;
   }
 }

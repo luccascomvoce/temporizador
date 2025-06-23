@@ -209,16 +209,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('confetti-container');
     const colors = ['#FFC107', '#FF5722', '#8BC34A', '#00BCD4', '#E91E63'];
 
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
     for (let i = 0; i < 100; i++) {
       const piece = document.createElement('div');
       piece.classList.add('confetti-piece');
       piece.style.animationDelay = `${Math.random()}s`;
+
       const side = Math.random() > 0.5 ? 'left' : 'right';
-      piece.style.left = side === 'left' ? '0' : '100%';
-      piece.style.setProperty('--xShift', `${(Math.random() * 50 + 20) * (side === 'left' ? 1 : -1)}vw`);
+
+      if (side === 'left') {
+        piece.style.left = '0';
+        piece.style.right = 'auto'; // Ensure right is not set
+        piece.style.transformOrigin = 'left center';
+      } else {
+        piece.style.right = '0';
+        piece.style.left = 'auto'; // Ensure left is not set
+        piece.style.transformOrigin = 'right center';
+      }
+
+      piece.style.top = `${Math.random() * containerHeight}px`; // Start at a random vertical position along the side
+
+      // Calculate shifts relative to container dimensions for better control
+      const xDistance = (Math.random() * 0.4 + 0.8) * containerWidth; // Between 80% and 120% of container width
+      const xDirection = side === 'left' ? 1 : -1; // Positive for left-to-right, negative for right-to-left
+      piece.style.setProperty('--xShift', `${xDistance * xDirection}px`);
+
+      // yPeak: initial upward movement (negative value) before falling
+      const yInitialUp = -(Math.random() * containerHeight * 0.2 + 20); // Go up to 20% of height + 20px
+      piece.style.setProperty('--yPeak', `${yInitialUp}px`);
+
+      // yDrop: how far down the confetti falls (e.g., 100% to 150% of height)
+      const yDrop = (Math.random() * 0.5 + 1) * containerHeight; // Fall 100% to 150% of container height
+      piece.style.setProperty('--yDrop', `${yDrop}px`);
+
+
       piece.style.setProperty('--rotation', `${Math.random() * 720 - 360}deg`);
-      piece.style.setProperty('--yPeak', `-${Math.random() * 30 + 10}vh`);
-      piece.style.top = `${Math.floor(Math.random() * window.innerHeight)}px`;
+
       piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
       container.appendChild(piece);
     }
