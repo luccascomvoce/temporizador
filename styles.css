@@ -14,7 +14,7 @@
 
 body {
   min-height: 100dvh;
-  height: 100vh;
+  height: 100vh; /* Fallback for dvh */
   font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
@@ -22,8 +22,8 @@ body {
   justify-content: center;
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
-  position: relative;
-  overflow: hidden;
+  position: relative; /* This is fine, doesn't break fixed positioning of children */
+  overflow: hidden; /* Prevents scrollbars on the body */
 }
 
 body.light-theme {
@@ -114,10 +114,13 @@ button {
 
 .theme-toggle {
   position: fixed;
-  right: 30px; /* Alterado para valor fixo para responsividade */
-  bottom: 30px; /* Alterado para valor fixo para responsividade */
+  right: 30px;
+  bottom: 30px;
   font-size: 1.5rem;
   z-index: 1001;
+  /* Adição para forçar a renderização em uma nova camada e ajudar com problemas de posicionamento fixo em dispositivos móveis */
+  -webkit-transform: translateZ(0); /* Para navegadores baseados em WebKit (iOS Safari, Chrome) */
+  transform: translateZ(0);
 }
 
 .theme-toggle i {
