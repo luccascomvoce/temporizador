@@ -11,25 +11,27 @@
 </head>
 <body tabindex="-1">
   <div class="container">
-    <fieldset class="timer">
-      <legend class="sr-only">Definir Tempo do Temporizador</legend>
-      <div class="time-group">
-        <label for="hours" class="time-label">horas</label>
-        <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
-      </div>
-      <div class="separator" aria-hidden="true">:</div>
-      <div class="time-group">
-        <label for="minutes" class="time-label">minutos</label>
-        <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
-      </div>
-      <div class="separator" aria-hidden="true">:</div>
-      <div class="time-group">
-        <label for="seconds" class="time-label">segundos</label>
-        <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
-      </div>
-    </fieldset>
+    <div class="timer-wrapper">
+      <fieldset class="timer">
+        <legend class="sr-only">Definir Tempo do Temporizador</legend>
+        <div class="time-group">
+          <label for="hours" class="time-label">horas</label>
+          <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <div class="separator" aria-hidden="true">:</div>
+        <div class="time-group">
+          <label for="minutes" class="time-label">minutos</label>
+          <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <div class="separator" aria-hidden="true">:</div>
+        <div class="time-group">
+          <label for="seconds" class="time-label">segundos</label>
+          <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+        </div>
+      </fieldset>
+      <button id="toggle" class="toggle-btn" aria-label="Iniciar ou pausar cronômetro"></button>
+    </div>
     <div aria-live="polite" class="sr-only" id="timer-status"></div>
-    <button id="toggle" class="toggle-btn" aria-label="Iniciar ou pausar cronômetro"></button>
   </div>
 
   <div id="confetti-container"></div>

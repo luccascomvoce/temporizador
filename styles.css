@@ -15,10 +15,10 @@
 body {
   height: 100vh;
   font-family: Arial, sans-serif;
-  display: flex; /* Alterado para flex */
-  flex-direction: column; /* Organiza em coluna */
-  align-items: center; /* Centraliza horizontalmente */
-  justify-content: center; /* Centraliza verticalmente */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
@@ -42,6 +42,13 @@ body.light-theme {
   max-height: 90vh;
 }
 
+.timer-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3vh;
+}
+
 .timer {
   display: flex;
   align-items: flex-end;
@@ -49,7 +56,8 @@ body.light-theme {
   gap: 1.5vw;
   outline: none;
   border: none;
-  margin-bottom: 3vh; /* Mantido para o layout horizontal */
+  margin-bottom: 0;
+  width: auto;
 }
 
 .time-group {
@@ -202,34 +210,46 @@ fieldset.timer:focus-within {
 }
 
 /* ============ Proporções Verticais Agressivas (altura > 16/9 * largura) ============ */
-@media (max-aspect-ratio: 9/16) { /* Proporção 16:9 como limite para ativar o layout vertical */
+@media (max-aspect-ratio: 9/16) {
+  .container {
+    transform: translateY(-5vh);
+  }
+
+  .timer-wrapper {
+    gap: 2vh;
+  }
+
   .timer {
-    display: grid;
-    grid-template-columns: auto auto; /* Duas colunas: rótulo | input */
-    gap: 1.5vh 3vw; /* Espaçamento vertical entre linhas, horizontal entre colunas */
-    align-items: center; /* Alinha verticalmente no centro */
-    justify-content: center; /* Alinha horizontalmente no centro */
-    margin-bottom: 0; /* Remove margem inferior para o container centralizar o grupo */
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+    width: auto;
   }
 
   .time-group {
-    display: contents; /* Permite que os filhos sejam itens diretos da grade */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .time-label {
-    text-align: right; /* Alinha rótulos à direita */
-    margin-bottom: 0; /* Remove margem inferior para o empilhamento vertical */
-    padding-right: 1vw; /* Pequeno espaçamento à direita dos rótulos */
-    font-size: clamp(0.9rem, 2vw, 1.5rem); /* Ajusta tamanho do rótulo para legibilidade */
+    text-align: center;
+    margin-bottom: 1vh;
+    padding: 0;
+    font-size: clamp(0.9rem, 2vw, 1.5rem);
   }
 
   .time-input {
-    text-align: left; /* Alinha inputs à esquerda */
-    font-size: clamp(4rem, 14vw, 10rem); /* Ajusta tamanho da fonte dos dígitos (2x maior) */
-    width: clamp(50px, 20vw, 100px); /* Ajusta largura dos campos de entrada */
+    text-align: center;
+    font-size: clamp(4rem, 14vw, 10rem);
+    width: auto;
+    min-width: clamp(80px, 18vw, 150px);
+    box-sizing: border-box;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 
   .separator {
-    display: none; /* Oculta os separadores no layout vertical */
+    display: none;
   }
 }
