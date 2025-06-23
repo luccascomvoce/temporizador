@@ -22,7 +22,8 @@ body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body.light-theme {
@@ -37,9 +38,11 @@ body.light-theme {
   align-items: center;
   justify-content: center;
   height: 100%;
+  max-height: 100vh;
   width: 100%;
   max-width: 90vw;
-  max-height: 90vh;
+  padding: 2vh 2vw;
+  box-sizing: border-box;
 }
 
 .timer-wrapper {
@@ -110,9 +113,9 @@ button {
 }
 
 .theme-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: absolute;
+  bottom: 2vh;
+  right: 2vw;
   font-size: 1.5rem;
 }
 
@@ -212,7 +215,8 @@ fieldset.timer:focus-within {
 /* ============ Proporções Verticais Agressivas (altura > 16/9 * largura) ============ */
 @media (max-aspect-ratio: 9/16) {
   .container {
-    transform: translateY(-5vh);
+    padding-top: 3vh;
+    padding-bottom: 3vh;
   }
 
   .timer-wrapper {
@@ -248,6 +252,13 @@ fieldset.timer:focus-within {
     padding-left: 5px;
     padding-right: 5px;
   }
+
+  .theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 1.5rem;
+}
 
   .separator {
     display: none;
