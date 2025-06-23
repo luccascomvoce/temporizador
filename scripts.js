@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSwiping = false; // Diferencia toque e deslize
     input.addEventListener('wheel', e => {
       e.preventDefault();
-      modifyTimeInput(input, e.deltaY > 0 ? 1 : -1);
+      modifyTimeInput(input, e.deltaY > 0 ? -1 : 1);
     });
     input.addEventListener('touchstart', e => {
       startY = e.touches[0].clientY;
