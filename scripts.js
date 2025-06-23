@@ -282,6 +282,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => (container.innerHTML = ''), 2000);
   }
+
+  // Registro do Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { // Usar 'load' para garantir que tudo esteja carregado, incluindo assets.
+    navigator.serviceWorker.register('/service-worker.js') // Caminho absoluto
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+}
   
   // Inicialização da UI
   updateButtonIcons();
