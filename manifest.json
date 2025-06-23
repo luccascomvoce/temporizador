@@ -2,7 +2,7 @@
   "name": "Temporizador",
   "short_name": "Temporizador",
   "description": "Temporizador feito por @luccascomvoce com HTML, CSS, JS e MUITA IA!",
-  "start_url": "/",
+  "start_url": "/temporizador/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#81d4fa",
