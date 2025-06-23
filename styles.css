@@ -15,9 +15,8 @@
 body {
   height: 100vh;
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  place-items: center;
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
   position: relative;
@@ -31,16 +30,24 @@ body.light-theme {
 
 /* ============ Timer Layout ============ */
 .container {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
 }
 
 .timer {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 10px;
+  gap: 1.5vw;
   outline: none;
-  border: none; 
+  border: none;
+  margin-bottom: 3vh;
 }
 
 .time-group {
@@ -50,14 +57,14 @@ body.light-theme {
 }
 
 .time-label {
-  font-size: 0.8rem;
+  font-size: clamp(0.7rem, 1.5vw, 1.2rem);
   color: #ccc;
-  margin-bottom: 5px;
+  margin-bottom: 1.5vh;
 }
 
 .time-input {
-  font-size: 3rem;
-  width: 60px;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  width: clamp(50px, 12vw, 120px);
   text-align: center;
   background: transparent;
   border: none;
@@ -66,7 +73,7 @@ body.light-theme {
 }
 
 .separator {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 8vw, 6rem);
   font-weight: bold;
   color: inherit;
 }
@@ -79,17 +86,16 @@ button {
   outline: none;
 }
 
-.toggle-btn,
-.theme-toggle {
+.toggle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: clamp(50px, 10vw, 80px);
+  height: clamp(50px, 10vw, 80px);
 }
 
 .toggle-btn i {
-  font-size: 36px;
+  font-size: clamp(30px, 7vw, 60px);
   color: inherit;
 }
 
@@ -191,4 +197,37 @@ body:not(.light-theme) .theme-toggle {
 
 fieldset.timer:focus-within {
   outline: none;
+}
+
+/* ============ Proporções Verticais Agressivas (altura > 2 * largura) ============ */
+@media (max-aspect-ratio: 1/2) {
+  .timer {
+    display: grid;
+    grid-template-columns: auto auto; /* Duas colunas: rótulo | input */
+    gap: 1.5vh 3vw; /* Espaçamento vertical entre linhas, horizontal entre colunas */
+    align-items: center; /* Alinha verticalmente no centro */
+    justify-content: center; /* Alinha horizontalmente no centro */
+    margin-bottom: 3vh; /* Mantém espaçamento para o botão abaixo */
+  }
+
+  .time-group {
+    display: contents; /* Permite que os filhos sejam itens diretos da grade */
+  }
+
+  .time-label {
+    text-align: right; /* Alinha rótulos à direita */
+    margin-bottom: 0; /* Remove margem inferior para o empilhamento vertical */
+    padding-right: 1vw; /* Pequeno espaçamento à direita dos rótulos */
+    font-size: clamp(0.9rem, 2vw, 1.5rem); /* Ajusta tamanho do rótulo para legibilidade */
+  }
+
+  .time-input {
+    text-align: left; /* Alinha inputs à esquerda */
+    font-size: clamp(3rem, 10.5vw, 7.5rem); /* Ajusta tamanho da fonte dos dígitos */
+    width: clamp(50px, 15vw, 100px); /* Ajusta largura dos campos de entrada */
+  }
+
+  .separator {
+    display: none; /* Oculta os separadores no layout vertical */
+  }
 }
