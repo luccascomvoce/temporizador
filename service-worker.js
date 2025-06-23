@@ -10,7 +10,7 @@ const urlsToCache = [
   '/index.html',
   '/styles.css',
   '/scripts.js',
-  '/images/favicon.svg', // Seu favicon personalizado
+  '/images/stopwatch-fill.svg', // Seu favicon personalizado
 
   // Ícones do manifesto que o PWA Builder gerou
   // Certifique-se de que esses arquivos existam na pasta 'images'
