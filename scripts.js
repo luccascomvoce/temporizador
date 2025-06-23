@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   let timerInterval;
   let isRunning = false;
-  let isSoundEnabled = true;
+  let isSoundEnabled; // Não inicialize aqui, será carregado do localStorage
 
   const timeInputs = {
     hours: document.getElementById('hours'),
@@ -24,6 +24,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const soundOnIcon = document.querySelector('.sound-on-icon');
   const soundOffIcon = document.querySelector('.sound-off-icon');
 
+  // ============== FUNÇÕES DE LOCAL STORAGE PARA CONFIGURAÇÕES ==============
+  /**
+   * Salva as configurações atuais de som e tema no localStorage.
+   */
+  function saveSettings() {
+    localStorage.setItem('isSoundEnabled', isSoundEnabled); // Salva o estado do som como string 'true' ou 'false'
+    localStorage.setItem('isLightTheme', document.body.classList.contains('light-theme')); // Salva o tema como string 'true' ou 'false'
+    console.log('Configurações salvas:', {
+      isSoundEnabled: isSoundEnabled,
+      isLightTheme: document.body.classList.contains('light-theme')
+    });
+  }
+
+  /**
+   * Carrega as configurações de som e tema do localStorage e aplica-as à UI.
+   */
+  function loadSettings() {
+    // Carrega o estado do som
+    const storedSoundEnabled = localStorage.getItem('isSoundEnabled');
+    if (storedSoundEnabled !== null) {
+      isSoundEnabled = (storedSoundEnabled === 'true'); // Converte a string de volta para boolean
+    } else {
+      isSoundEnabled = true; // Define o estado padrão se nada for encontrado no localStorage
+    }
+
+    // Carrega o tema
+    const storedLightTheme = localStorage.getItem('isLightTheme');
+    if (storedLightTheme === 'true') {
+      document.body.classList.add('light-theme');
+    } else if (storedLightTheme === 'false') {
+      document.body.classList.remove('light-theme');
+    }
+    // Se storedLightTheme for null, o tema padrão do CSS (escuro) será aplicado, o que é o comportamento esperado.
+
+    console.log('Configurações carregadas:', {
+      isSoundEnabled: isSoundEnabled,
+      isLightTheme: document.body.classList.contains('light-theme')
+    });
+    // **IMPORTANTE:** Atualiza a UI com as configurações carregadas após o carregamento.
+    updateSoundUI(); // Isso também chamará saveSettings(), mas está ok para garantir a consistência visual inicial.
+  }
+
+  // **CHAMADA:** Chame loadSettings() ao carregar a página para aplicar as configurações salvas.
+  loadSettings();
+  // ======================================================================
+
   function padZero(num) {
     return num.toString().padStart(2, '0');
   }
@@ -39,21 +85,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const { min, max, next } = limits[input.id];
 
     if (value < min) {
-      input.value = padZero(max);
-      if (next) next.value = padZero(Math.max(min, parseInt(next.value, 10) - 1));
-    } else if (value > max) {
-      input.value = padZero(min);
-      if (next) next.value = padZero(Math.min(max, parseInt(next.value, 10) + 1));
-    } else {
-      input.value = padZero(value);
+      return min;
     }
+    if (value > max) {
+      if (input.id !== 'hours' && next) {
+        const overflow = Math.floor(value / (max + 1));
+        const remaining = value % (max + 1);
+        let nextValue = parseInt(next.value, 10) + overflow;
+        next.value = padZero(nextValue);
+        return remaining;
+      }
+      return max;
+    }
+    return value;
   }
 
   function modifyTimeInput(input, delta) {
     if (!isRunning) {
       const currentValue = parseInt(input.value, 10) || 0;
-      input.value = padZero(currentValue + delta);
-      normalizeInputValue(input);
+      let newValue = currentValue + delta;
+
+      const limits = {
+        hours: { min: 0, max: 99 },
+        minutes: { min: 0, max: 59 },
+        seconds: { min: 0, max: 59 },
+      };
+      const { min, max } = limits[input.id];
+
+      if (newValue > max) {
+        newValue = min;
+      } else if (newValue < min) {
+        newValue = max;
+      }
+      input.value = padZero(newValue);
     }
   }
 
@@ -79,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateButtonIcons() {
     toggleBtn.innerHTML = `<i class="bi bi-${isRunning ? 'pause-fill' : 'play-fill'}"></i>`;
+    toggleBtn.setAttribute('aria-label', isRunning ? 'Pausar cronômetro' : 'Iniciar cronômetro');
   }
 
   function toggleTimer() {
@@ -90,8 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
       timerStatus.textContent = 'O temporizador foi pausado.';
     } else if (totalSeconds > 0) {
       isRunning = true;
-      timerInterval = setInterval(decrementTimer, 1000);
       timerStatus.textContent = 'O temporizador começou.';
+      timerInterval = setInterval(decrementTimer, 1000);
+    } else {
+        timerStatus.textContent = "Defina um tempo válido para iniciar.";
     }
 
     updateInputsReadOnly();
@@ -115,6 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.body.focus();
         timerStatus.textContent = 'O tempo acabou.';
+        // Resetar inputs após o fim do temporizador
+        timeInputs.hours.value = '00';
+        timeInputs.minutes.value = '00';
+        timeInputs.seconds.value = '00';
       }
     }
   }
@@ -149,25 +220,72 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('keydown', e => {
       if (!isRunning) {
         switch (e.key) {
-          case 'ArrowUp': modifyTimeInput(input, 1); break;
-          case 'ArrowDown': modifyTimeInput(input, -1); break;
-          case 'ArrowLeft': inputsArray[(index - 1 + inputsArray.length) % inputsArray.length].focus(); break;
-          case 'ArrowRight': inputsArray[(index + 1) % inputsArray.length].focus(); break;
+          case 'ArrowUp':
+            e.preventDefault();
+            modifyTimeInput(input, 1);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            modifyTimeInput(input, -1);
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            const prevInput = inputsArray[(index - 1 + inputsArray.length) % inputsArray.length];
+            prevInput.focus();
+            prevInput.select();
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            const nextInput = inputsArray[(index + 1) % inputsArray.length];
+            nextInput.focus();
+            nextInput.select();
+            break;
+          case 'Enter':
+            e.preventDefault();
+            input.blur();
+            toggleTimer();
+            break;
+          case 'Backspace':
+          case 'Delete':
+            setTimeout(() => {
+              if (input.value === '' || isNaN(parseInt(input.value, 10))) {
+                input.value = '00';
+              }
+            }, 0);
+            break;
+          default:
+            if (!/^\d$/.test(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault();
+            }
         }
       }
     });
-    input.addEventListener('blur', () => normalizeInputValue(input));
-    input.addEventListener('focus', () => input.select());
+    input.addEventListener('blur', () => {
+      input.value = padZero(normalizeInputValue(input));
+    });
+    input.addEventListener('focus', () => {
+      input.select();
+    });
+    input.addEventListener('input', () => {
+        if (input.value.length === 2 && input.id !== 'hours') {
+            const nextInput = inputsArray[(index + 1) % inputsArray.length];
+            nextInput.focus();
+            nextInput.select();
+        }
+    });
   });
 
   document.addEventListener('keydown', e => {
     if (e.code === 'Space') {
       e.preventDefault();
-      if (e.target.matches('input')) e.target.blur();
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        document.activeElement.blur();
+      }
       toggleTimer();
     }
+    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
     if (e.key === 'Escape' && settingsPopup.classList.contains('open')) {
-        closeSettings();
+      closeSettings();
     }
   });
 
@@ -175,17 +293,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Lógica do menu de configurações
   function openSettings() {
-    settingsPopup.classList.add('open');
-    settingsBtn.classList.add('rotated');
+    settingsPopup.classList.add('open'); // **CORRIGIDO:** Usar 'open'
+    settingsBtn.classList.add('rotated'); // **CORRIGIDO:** Usar 'rotated'
+    settingsBtn.setAttribute('aria-expanded', 'true');
   }
 
   function closeSettings() {
-    settingsPopup.classList.remove('open');
-    settingsBtn.classList.remove('rotated');
+    settingsPopup.classList.remove('open'); // **CORRIGIDO:** Usar 'open'
+    settingsBtn.classList.remove('rotated'); // **CORRIGIDO:** Usar 'rotated'
+    settingsBtn.setAttribute('aria-expanded', 'false');
   }
 
   settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
     if (settingsPopup.classList.contains('open')) {
       closeSettings();
     } else {
@@ -193,55 +314,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Fechar pop-up ao clicar fora
   document.addEventListener('click', (e) => {
+    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
     if (settingsPopup.classList.contains('open') && !settingsPopup.contains(e.target) && !settingsBtn.contains(e.target)) {
       closeSettings();
     }
   });
 
   // Ajuste: Troca de Tema
-  themeSetting.addEventListener('click', () => {
-    const isLight = document.body.classList.contains('light-theme');
-    const newColor = isLight ? '#000' : '#fff';
-    const circle = document.createElement('div');
-    circle.classList.add('theme-transition-circle');
-    circle.style.backgroundColor = newColor;
+  themeSetting.addEventListener('click', (event) => {
+    const transitionCircle = document.createElement('div');
+    transitionCircle.classList.add('theme-transition-circle');
+    document.body.appendChild(transitionCircle);
 
-    const maxDiameter = Math.max(window.innerWidth, window.innerHeight) * 1.5;
-    circle.style.width = `${maxDiameter}px`;
-    circle.style.height = `${maxDiameter}px`;
-    
-    const rect = settingsBtn.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    circle.style.left = `${centerX}px`;
-    circle.style.top = `${centerY}px`;
-    circle.style.marginLeft = `-${maxDiameter / 2}px`;
-    circle.style.marginTop = `-${maxDiameter / 2}px`;
+    const maxDim = Math.max(window.innerWidth, window.innerHeight);
+    const radius = Math.sqrt(Math.pow(maxDim, 2) + Math.pow(maxDim, 2));
 
-    document.body.appendChild(circle);
-    circle.offsetWidth;
-    circle.classList.add('animate');
+    transitionCircle.style.width = `${radius * 2}px`;
+    transitionCircle.style.height = `${radius * 2}px`;
+    transitionCircle.style.left = `${centerX - radius}px`;
+    transitionCircle.style.top = `${centerY - radius}px`;
+
+    const isCurrentlyLight = document.body.classList.contains('light-theme');
+    transitionCircle.style.backgroundColor = isCurrentlyLight ? 'var(--color-bg-dark)' : 'var(--color-bg-light)';
+
+    requestAnimationFrame(() => {
+      transitionCircle.classList.add('animate');
+    });
 
     setTimeout(() => {
       document.body.classList.toggle('light-theme');
+      saveSettings(); // Salva o estado do tema no localStorage
       document.body.focus();
-    }, 300);
+    }, 100);
 
-    circle.addEventListener('animationend', () => circle.remove());
+    // **CORRIGIDO:** Usar 'transitionCircle' em vez de 'circle'
+    transitionCircle.addEventListener('animationend', () => transitionCircle.remove());
   });
-  
+
   // Ajuste: Ligar/Desligar Som
   soundSetting.addEventListener('click', () => {
     isSoundEnabled = !isSoundEnabled;
     updateSoundUI();
+    saveSettings(); // Salva o estado do som no localStorage
   });
 
   function updateSoundUI() {
-      soundSettingText.textContent = isSoundEnabled ? 'Som ligado' : 'Som desligado';
-      soundOnIcon.style.display = isSoundEnabled ? 'flex' : 'none';
-      soundOffIcon.style.display = isSoundEnabled ? 'none' : 'flex';
+    soundSettingText.textContent = isSoundEnabled ? 'Som ligado' : 'Som desligado';
+    if (soundOnIcon) soundOnIcon.style.display = isSoundEnabled ? 'inline-block' : 'none';
+    if (soundOffIcon) soundOffIcon.style.display = isSoundEnabled ? 'none' : 'inline-block';
   }
 
 
@@ -250,6 +376,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const colors = ['#FFC107', '#FF5722', '#8BC34A', '#00BCD4', '#E91E63'];
     const containerWidth = container.offsetWidth;
     const containerHeight = container.offsetHeight;
+
+    container.innerHTML = '';
 
     for (let i = 0; i < 100; i++) {
       const piece = document.createElement('div');
@@ -284,19 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Registro do Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { // Usar 'load' para garantir que tudo esteja carregado, incluindo assets.
-    navigator.serviceWorker.register('/service-worker.js') // Caminho absoluto
-      .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-  });
-}
-  
-  // Inicialização da UI
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    });
+  }
+
+  // Inicialização da UI (updateSoundUI já é chamada por loadSettings)
   updateButtonIcons();
-  updateSoundUI();
 });
