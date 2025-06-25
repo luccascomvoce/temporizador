@@ -1,107 +1,219 @@
 // scripts.js
 
-document.addEventListener('DOMContentLoaded', () => {
-  let timerInterval;
-  let isRunning = false;
-  let isSoundEnabled; // Não inicialize aqui, será carregado do localStorage
+const TimerManager = {
+  // Propriedades de estado
+  timerInterval: null,
+  isRunning: false,
+  isSoundEnabled: true,
+  startY: 0,
+  
+  // Referências DOM
+  timeInputs: null,
+  toggleBtn: null,
+  timerStatus: null,
+  timerEndSound: null,
+  settingsBtn: null,
+  settingsPopup: null,
+  themeSetting: null,
+  soundSetting: null,
+  soundSettingText: null,
+  soundOnIcon: null,
+  soundOffIcon: null,
 
-  const timeInputs = {
-    hours: document.getElementById('hours'),
-    minutes: document.getElementById('minutes'),
-    seconds: document.getElementById('seconds'),
-  };
+  // Inicialização principal
+  init() {
+    this.setupDOMReferences();
+    this.loadSettings();
+    this.setupEventListeners();
+    this.registerServiceWorker();
+    this.updateUI();
+  },
 
-  const toggleBtn = document.getElementById('toggle');
-  const timerStatus = document.getElementById('timer-status');
-  const timerEndSound = document.getElementById('timerEndSound');
+  // Configurar referências DOM
+  setupDOMReferences() {
+    this.timeInputs = {
+      hours: document.getElementById('hours'),
+      minutes: document.getElementById('minutes'),
+      seconds: document.getElementById('seconds')
+    };
+    
+    this.toggleBtn = document.getElementById('toggle');
+    this.timerStatus = document.getElementById('timer-status');
+    this.timerEndSound = document.getElementById('timerEndSound');
+    
+    this.settingsBtn = document.getElementById('settingsBtn');
+    this.settingsPopup = document.getElementById('settingsPopup');
+    this.themeSetting = document.getElementById('themeSetting');
+    this.soundSetting = document.getElementById('soundSetting');
+    this.soundSettingText = document.getElementById('soundSettingText');
+    this.soundOnIcon = document.querySelector('.sound-on-icon');
+    this.soundOffIcon = document.querySelector('.sound-off-icon');
+  },
 
-  // Elementos do Menu de Configurações
-  const settingsBtn = document.getElementById('settingsBtn');
-  const settingsPopup = document.getElementById('settingsPopup');
-  const themeSetting = document.getElementById('themeSetting');
-  const soundSetting = document.getElementById('soundSetting');
-  const soundSettingText = document.getElementById('soundSettingText');
-  const soundOnIcon = document.querySelector('.sound-on-icon');
-  const soundOffIcon = document.querySelector('.sound-off-icon');
-
-  // ============== FUNÇÕES DE LOCAL STORAGE PARA CONFIGURAÇÕES ==============
-  /**
-   * Salva as configurações atuais de som e tema no localStorage.
-   */
-  function saveSettings() {
-    localStorage.setItem('isSoundEnabled', isSoundEnabled); // Salva o estado do som como string 'true' ou 'false'
-    localStorage.setItem('isLightTheme', document.body.classList.contains('light-theme')); // Salva o tema como string 'true' ou 'false'
-    console.log('Configurações salvas:', {
-      isSoundEnabled: isSoundEnabled,
-      isLightTheme: document.body.classList.contains('light-theme')
+  // Configurar event listeners
+  setupEventListeners() {
+    // Eventos para inputs de tempo
+    Object.values(this.timeInputs).forEach((input, index, inputsArray) => {
+      let isSwiping = false;
+      
+      input.addEventListener('wheel', e => {
+        e.preventDefault();
+        this.modifyInput(input, e.deltaY > 0 ? -1 : 1);
+      });
+      
+      input.addEventListener('touchstart', e => {
+        this.startY = e.touches[0].clientY;
+        isSwiping = false;
+      });
+      
+      input.addEventListener('touchmove', e => {
+        if (this.isRunning) return;
+        const currentY = e.touches[0].clientY;
+        const deltaY = this.startY - currentY;
+        if (Math.abs(deltaY) > 10) {
+          isSwiping = true;
+          e.preventDefault();
+          this.modifyInput(input, deltaY > 0 ? 1 : -1);
+          this.startY = currentY;
+        }
+      }, { passive: false });
+      
+      input.addEventListener('touchend', e => {
+        if (isSwiping) e.preventDefault();
+      });
+      
+      input.addEventListener('keydown', e => {
+        if (!this.isRunning) {
+          switch (e.key) {
+            case 'ArrowUp':
+              e.preventDefault();
+              this.modifyInput(input, 1);
+              break;
+            case 'ArrowDown':
+              e.preventDefault();
+              this.modifyInput(input, -1);
+              break;
+            case 'ArrowLeft':
+              e.preventDefault();
+              const prevInput = inputsArray[(index - 1 + inputsArray.length) % inputsArray.length];
+              prevInput.focus();
+              prevInput.select();
+              break;
+            case 'ArrowRight':
+              e.preventDefault();
+              const nextInput = inputsArray[(index + 1) % inputsArray.length];
+              nextInput.focus();
+              nextInput.select();
+              break;
+            case 'Enter':
+              e.preventDefault();
+              input.blur();
+              this.toggleTimer();
+              break;
+            case 'Backspace':
+            case 'Delete':
+              setTimeout(() => {
+                if (input.value === '' || isNaN(parseInt(input.value, 10))) {
+                  input.value = '00';
+                }
+              }, 0);
+              break;
+            default:
+              if (!/^\d$/.test(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+              }
+          }
+        }
+      });
+      
+      input.addEventListener('blur', () => {
+        input.value = this.padZero(this.normalizeInput(input));
+      });
+      
+      input.addEventListener('focus', () => {
+        input.select();
+      });
+      
+      input.addEventListener('input', () => {
+        if (input.value.length === 2 && input.id !== 'hours') {
+          const nextInput = inputsArray[(index + 1) % inputsArray.length];
+          nextInput.focus();
+          nextInput.select();
+        }
+      });
     });
-  }
-
-  /**
-   * Carrega as configurações de som e tema do localStorage e aplica-as à UI.
-   */
-  function loadSettings() {
-    // Carrega o estado do som
-    const storedSoundEnabled = localStorage.getItem('isSoundEnabled');
-    if (storedSoundEnabled !== null) {
-      isSoundEnabled = (storedSoundEnabled === 'true'); // Converte a string de volta para boolean
-    } else {
-      isSoundEnabled = true; // Define o estado padrão se nada for encontrado no localStorage
-    }
-
-    // Carrega o tema
-    const storedLightTheme = localStorage.getItem('isLightTheme');
-    if (storedLightTheme === 'true') {
-      document.body.classList.add('light-theme');
-    } else if (storedLightTheme === 'false') {
-      document.body.classList.remove('light-theme');
-    }
-    // Se storedLightTheme for null, o tema padrão do CSS (escuro) será aplicado, o que é o comportamento esperado.
-
-    console.log('Configurações carregadas:', {
-      isSoundEnabled: isSoundEnabled,
-      isLightTheme: document.body.classList.contains('light-theme')
+    
+    // Eventos globais de teclado
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+          document.activeElement.blur();
+        }
+        this.toggleTimer();
+      }
+      
+      if (e.key === 'Escape' && this.settingsPopup.classList.contains('open')) {
+        this.closeSettings();
+      }
     });
-    // **IMPORTANTE:** Atualiza a UI com as configurações carregadas após o carregamento.
-    updateSoundUI(); // Isso também chamará saveSettings(), mas está ok para garantir a consistência visual inicial.
-  }
-
-  // **CHAMADA:** Chame loadSettings() ao carregar a página para aplicar as configurações salvas.
-  loadSettings();
-  // ======================================================================
-
-  function padZero(num) {
+    
+    // Eventos de botões
+    this.toggleBtn.addEventListener('click', () => this.toggleTimer());
+    
+    this.settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.settingsPopup.classList.contains('open')) {
+        this.closeSettings();
+      } else {
+        this.openSettings();
+      }
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (this.settingsPopup.classList.contains('open') && 
+          !this.settingsPopup.contains(e.target) && 
+          !this.settingsBtn.contains(e.target)) {
+        this.closeSettings();
+      }
+    });
+    
+    this.themeSetting.addEventListener('click', (event) => this.toggleTheme(event));
+    this.soundSetting.addEventListener('click', () => this.toggleSound());
+  },
+  
+  // Utilitários
+  padZero(num) {
     return num.toString().padStart(2, '0');
-  }
-
-  function normalizeInputValue(input) {
+  },
+  
+  normalizeInput(input) {
     const value = parseInt(input.value, 10) || 0;
     const limits = {
       hours: { min: 0, max: 99, next: null },
-      minutes: { min: 0, max: 59, next: timeInputs.hours },
-      seconds: { min: 0, max: 59, next: timeInputs.minutes },
+      minutes: { min: 0, max: 59, next: this.timeInputs.hours },
+      seconds: { min: 0, max: 59, next: this.timeInputs.minutes },
     };
 
     const { min, max, next } = limits[input.id];
 
-    if (value < min) {
-      return min;
-    }
+    if (value < min) return min;
     if (value > max) {
       if (input.id !== 'hours' && next) {
         const overflow = Math.floor(value / (max + 1));
         const remaining = value % (max + 1);
         let nextValue = parseInt(next.value, 10) + overflow;
-        next.value = padZero(nextValue);
+        next.value = this.padZero(nextValue);
         return remaining;
       }
       return max;
     }
     return value;
-  }
-
-  function modifyTimeInput(input, delta) {
-    if (!isRunning) {
+  },
+  
+  // Controles de tempo
+  modifyInput(input, delta) {
+    if (!this.isRunning) {
       const currentValue = parseInt(input.value, 10) || 0;
       let newValue = currentValue + delta;
 
@@ -112,218 +224,130 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       const { min, max } = limits[input.id];
 
-      if (newValue > max) {
-        newValue = min;
-      } else if (newValue < min) {
-        newValue = max;
-      }
-      input.value = padZero(newValue);
+      if (newValue > max) newValue = min;
+      else if (newValue < min) newValue = max;
+      
+      input.value = this.padZero(newValue);
     }
-  }
-
-  function getInputAsSeconds() {
+  },
+  
+  getTotalSeconds() {
     return (
-      parseInt(timeInputs.hours.value, 10) * 3600 +
-      parseInt(timeInputs.minutes.value, 10) * 60 +
-      parseInt(timeInputs.seconds.value, 10)
+      parseInt(this.timeInputs.hours.value, 10) * 3600 +
+      parseInt(this.timeInputs.minutes.value, 10) * 60 +
+      parseInt(this.timeInputs.seconds.value, 10)
     ) || 0;
-  }
+  },
+  
+  updateInputsFromSeconds(totalSeconds) {
+    this.timeInputs.hours.value = this.padZero(Math.floor(totalSeconds / 3600));
+    this.timeInputs.minutes.value = this.padZero(Math.floor((totalSeconds % 3600) / 60));
+    this.timeInputs.seconds.value = this.padZero(totalSeconds % 60);
+  },
+  
+  // Controles do temporizador
+  toggleTimer() {
+    const totalSeconds = this.getTotalSeconds();
 
-  function updateInputsFromSeconds(totalSeconds) {
-    timeInputs.hours.value = padZero(Math.floor(totalSeconds / 3600));
-    timeInputs.minutes.value = padZero(Math.floor((totalSeconds % 3600) / 60));
-    timeInputs.seconds.value = padZero(totalSeconds % 60);
-  }
-
-  function updateInputsReadOnly() {
-    Object.values(timeInputs).forEach(input => {
-      input.readOnly = isRunning;
-    });
-  }
-
-  function updateButtonIcons() {
-    toggleBtn.innerHTML = `<i class="bi bi-${isRunning ? 'pause-fill' : 'play-fill'}"></i>`;
-    toggleBtn.setAttribute('aria-label', isRunning ? 'Pausar cronômetro' : 'Iniciar cronômetro');
-  }
-
-  function toggleTimer() {
-    const totalSeconds = getInputAsSeconds();
-
-    if (isRunning) {
-      clearInterval(timerInterval);
-      isRunning = false;
-      timerStatus.textContent = 'O temporizador foi pausado.';
+    if (this.isRunning) {
+      clearInterval(this.timerInterval);
+      this.isRunning = false;
+      this.timerStatus.textContent = 'O temporizador foi pausado.';
     } else if (totalSeconds > 0) {
-      isRunning = true;
-      timerStatus.textContent = 'O temporizador começou.';
-      timerInterval = setInterval(decrementTimer, 1000);
+      this.isRunning = true;
+      this.timerStatus.textContent = 'O temporizador começou.';
+      this.timerInterval = setInterval(() => this.decrement(), 1000);
     } else {
-        timerStatus.textContent = "Defina um tempo válido para iniciar.";
+      this.timerStatus.textContent = "Defina um tempo válido para iniciar.";
     }
 
-    updateInputsReadOnly();
-    updateButtonIcons();
-  }
-
-  function decrementTimer() {
-    let totalSeconds = getInputAsSeconds();
+    this.updateUI();
+  },
+  
+  decrement() {
+    let totalSeconds = this.getTotalSeconds();
     if (totalSeconds > 0) {
       totalSeconds--;
-      updateInputsFromSeconds(totalSeconds);
+      this.updateInputsFromSeconds(totalSeconds);
 
       if (totalSeconds === 0) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        updateInputsReadOnly();
-        updateButtonIcons();
-        launchConfetti();
-        if (isSoundEnabled) {
-          timerEndSound.play();
+        clearInterval(this.timerInterval);
+        this.isRunning = false;
+        this.launchConfetti();
+        
+        if (this.isSoundEnabled) {
+          this.timerEndSound.play();
         }
+        
         document.body.focus();
-        timerStatus.textContent = 'O tempo acabou.';
-        // Resetar inputs após o fim do temporizador
-        timeInputs.hours.value = '00';
-        timeInputs.minutes.value = '00';
-        timeInputs.seconds.value = '00';
+        this.timerStatus.textContent = 'O tempo acabou.';
+        
+        // Resetar inputs após o término
+        setTimeout(() => {
+          this.timeInputs.hours.value = '00';
+          this.timeInputs.minutes.value = '00';
+          this.timeInputs.seconds.value = '00';
+          this.updateUI();
+        }, 2000);
       }
     }
-  }
-
-  // Lógica de manipulação dos inputs de tempo
-  Object.values(timeInputs).forEach((input, index, inputsArray) => {
-    let startY;
-    let isSwiping = false;
-    input.addEventListener('wheel', e => {
-      e.preventDefault();
-      modifyTimeInput(input, e.deltaY > 0 ? -1 : 1);
+  },
+  
+  // Gerenciamento de UI
+  updateUI() {
+    this.updateInputState();
+    this.updateControls();
+    this.updateSoundUI();
+  },
+  
+  updateInputState() {
+    Object.values(this.timeInputs).forEach(input => {
+      input.readOnly = this.isRunning;
     });
-    input.addEventListener('touchstart', e => {
-      startY = e.touches[0].clientY;
-      isSwiping = false;
-    });
-    input.addEventListener('touchmove', e => {
-      if (isRunning) return;
-      const currentY = e.touches[0].clientY;
-      const deltaY = startY - currentY;
-      if (Math.abs(deltaY) > 10) {
-        isSwiping = true;
-        e.preventDefault();
-        modifyTimeInput(input, deltaY > 0 ? 1 : -1);
-        startY = currentY;
-      }
-    }, { passive: false });
-    input.addEventListener('touchend', e => {
-      if (isSwiping) e.preventDefault();
-      isSwiping = false;
-    });
-    input.addEventListener('keydown', e => {
-      if (!isRunning) {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault();
-            modifyTimeInput(input, 1);
-            break;
-          case 'ArrowDown':
-            e.preventDefault();
-            modifyTimeInput(input, -1);
-            break;
-          case 'ArrowLeft':
-            e.preventDefault();
-            const prevInput = inputsArray[(index - 1 + inputsArray.length) % inputsArray.length];
-            prevInput.focus();
-            prevInput.select();
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            const nextInput = inputsArray[(index + 1) % inputsArray.length];
-            nextInput.focus();
-            nextInput.select();
-            break;
-          case 'Enter':
-            e.preventDefault();
-            input.blur();
-            toggleTimer();
-            break;
-          case 'Backspace':
-          case 'Delete':
-            setTimeout(() => {
-              if (input.value === '' || isNaN(parseInt(input.value, 10))) {
-                input.value = '00';
-              }
-            }, 0);
-            break;
-          default:
-            if (!/^\d$/.test(e.key) && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-              e.preventDefault();
-            }
-        }
-      }
-    });
-    input.addEventListener('blur', () => {
-      input.value = padZero(normalizeInputValue(input));
-    });
-    input.addEventListener('focus', () => {
-      input.select();
-    });
-    input.addEventListener('input', () => {
-        if (input.value.length === 2 && input.id !== 'hours') {
-            const nextInput = inputsArray[(index + 1) % inputsArray.length];
-            nextInput.focus();
-            nextInput.select();
-        }
-    });
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-        document.activeElement.blur();
-      }
-      toggleTimer();
+  },
+  
+  updateControls() {
+    this.toggleBtn.innerHTML = `<i class="bi bi-${this.isRunning ? 'pause-fill' : 'play-fill'}"></i>`;
+    this.toggleBtn.setAttribute('aria-label', this.isRunning ? 'Pausar cronômetro' : 'Iniciar cronômetro');
+  },
+  
+  // Configurações
+  saveSettings() {
+    localStorage.setItem('isSoundEnabled', this.isSoundEnabled);
+    localStorage.setItem('isLightTheme', document.body.classList.contains('light-theme'));
+  },
+  
+  loadSettings() {
+    // Carregar configuração de som
+    const storedSoundEnabled = localStorage.getItem('isSoundEnabled');
+    if (storedSoundEnabled !== null) {
+      this.isSoundEnabled = (storedSoundEnabled === 'true');
     }
-    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
-    if (e.key === 'Escape' && settingsPopup.classList.contains('open')) {
-      closeSettings();
+    
+    // Carregar configuração de tema
+    const storedLightTheme = localStorage.getItem('isLightTheme');
+    if (storedLightTheme === 'true') {
+      document.body.classList.add('light-theme');
+    } else if (storedLightTheme === 'false') {
+      document.body.classList.remove('light-theme');
     }
-  });
-
-  toggleBtn.addEventListener('click', toggleTimer);
-
-  // Lógica do menu de configurações
-  function openSettings() {
-    settingsPopup.classList.add('open'); // **CORRIGIDO:** Usar 'open'
-    settingsBtn.classList.add('rotated'); // **CORRIGIDO:** Usar 'rotated'
-    settingsBtn.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeSettings() {
-    settingsPopup.classList.remove('open'); // **CORRIGIDO:** Usar 'open'
-    settingsBtn.classList.remove('rotated'); // **CORRIGIDO:** Usar 'rotated'
-    settingsBtn.setAttribute('aria-expanded', 'false');
-  }
-
-  settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
-    if (settingsPopup.classList.contains('open')) {
-      closeSettings();
-    } else {
-      openSettings();
-    }
-  });
-
-  // Fechar pop-up ao clicar fora
-  document.addEventListener('click', (e) => {
-    // **CORRIGIDO:** Usar 'open' para verificar o estado do pop-up.
-    if (settingsPopup.classList.contains('open') && !settingsPopup.contains(e.target) && !settingsBtn.contains(e.target)) {
-      closeSettings();
-    }
-  });
-
-  // Ajuste: Troca de Tema
-  themeSetting.addEventListener('click', (event) => {
+    
+    this.updateSoundUI();
+  },
+  
+  toggleSound() {
+    this.isSoundEnabled = !this.isSoundEnabled;
+    this.updateSoundUI();
+    this.saveSettings();
+  },
+  
+  updateSoundUI() {
+    this.soundSettingText.textContent = this.isSoundEnabled ? 'Som ligado' : 'Som desligado';
+    if (this.soundOnIcon) this.soundOnIcon.style.display = this.isSoundEnabled ? 'inline-block' : 'none';
+    if (this.soundOffIcon) this.soundOffIcon.style.display = this.isSoundEnabled ? 'none' : 'inline-block';
+  },
+  
+  toggleTheme(event) {
     const transitionCircle = document.createElement('div');
     transitionCircle.classList.add('theme-transition-circle');
     document.body.appendChild(transitionCircle);
@@ -349,29 +373,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
       document.body.classList.toggle('light-theme');
-      saveSettings(); // Salva o estado do tema no localStorage
+      this.saveSettings();
       document.body.focus();
     }, 100);
 
-    // **CORRIGIDO:** Usar 'transitionCircle' em vez de 'circle'
     transitionCircle.addEventListener('animationend', () => transitionCircle.remove());
-  });
-
-  // Ajuste: Ligar/Desligar Som
-  soundSetting.addEventListener('click', () => {
-    isSoundEnabled = !isSoundEnabled;
-    updateSoundUI();
-    saveSettings(); // Salva o estado do som no localStorage
-  });
-
-  function updateSoundUI() {
-    soundSettingText.textContent = isSoundEnabled ? 'Som ligado' : 'Som desligado';
-    if (soundOnIcon) soundOnIcon.style.display = isSoundEnabled ? 'inline-block' : 'none';
-    if (soundOffIcon) soundOffIcon.style.display = isSoundEnabled ? 'none' : 'inline-block';
-  }
-
-
-  function launchConfetti() {
+  },
+  
+  // Menu de configurações
+  openSettings() {
+    this.settingsPopup.classList.add('open');
+    this.settingsBtn.classList.add('rotated');
+    this.settingsBtn.setAttribute('aria-expanded', 'true');
+  },
+  
+  closeSettings() {
+    this.settingsPopup.classList.remove('open');
+    this.settingsBtn.classList.remove('rotated');
+    this.settingsBtn.setAttribute('aria-expanded', 'false');
+  },
+  
+  // Efeitos
+  launchConfetti() {
     const container = document.getElementById('confetti-container');
     const colors = ['#FFC107', '#FF5722', '#8BC34A', '#00BCD4', '#E91E63'];
     const containerWidth = container.offsetWidth;
@@ -409,11 +432,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setTimeout(() => (container.innerHTML = ''), 2000);
-  }
-
-  // Registro do Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+  },
+  
+  // Service Worker
+  registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then((registration) => {
           console.log('Service Worker registered with scope:', registration.scope);
@@ -421,9 +444,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
         });
-    });
+    }
   }
+};
 
-  // Inicialização da UI (updateSoundUI já é chamada por loadSettings)
-  updateButtonIcons();
-});
+// Inicializar quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => TimerManager.init());
