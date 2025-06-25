@@ -169,6 +169,19 @@ const TimerManager = {
         this.openSettings();
       }
     });
+
+    this.settingsBtn.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (this.settingsPopup.classList.contains('open')) {
+          this.closeSettings();
+        } else {
+          this.openSettings();
+        }
+      }
+    });
     
     document.addEventListener('click', (e) => {
       if (this.settingsPopup.classList.contains('open') && 
@@ -180,6 +193,23 @@ const TimerManager = {
     
     this.themeSetting.addEventListener('click', (event) => this.toggleTheme(event));
     this.soundSetting.addEventListener('click', () => this.toggleSound());
+
+    // Suporte para teclado nas opções de menu
+    this.themeSetting.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        this.toggleTheme(e);
+      }
+    });
+
+    this.soundSetting.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        this.toggleSound();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => this.handlePopupTabNavigation(e));
   },
   
   // Utilitários
@@ -339,6 +369,7 @@ const TimerManager = {
     this.isSoundEnabled = !this.isSoundEnabled;
     this.updateSoundUI();
     this.saveSettings();
+    this.soundSetting.focus();
   },
   
   updateSoundUI() {
@@ -374,23 +405,63 @@ const TimerManager = {
     setTimeout(() => {
       document.body.classList.toggle('light-theme');
       this.saveSettings();
-      document.body.focus();
+      this.themeSetting.focus();
     }, 100);
 
     transitionCircle.addEventListener('animationend', () => transitionCircle.remove());
   },
   
+  handlePopupTabNavigation(e) {
+    if (!this.settingsPopup.classList.contains('open')) return;
+
+    // Elementos focáveis na ordem desejada
+    const focusableElements = [
+      this.themeSetting,
+      this.soundSetting,
+      this.settingsBtn
+    ];
+
+    if (e.key === 'Escape') {
+      this.closeSettings();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      const currentIndex = focusableElements.indexOf(document.activeElement);
+      const lastIndex = focusableElements.length - 1;
+      let nextIndex;
+
+      // Tratar quando o elemento atual não está na lista
+      if (currentIndex === -1) {
+        e.preventDefault();
+        focusableElements[0].focus();
+        return;
+      }
+
+      if (e.shiftKey) { // Shift + Tab (voltar)
+        nextIndex = currentIndex <= 0 ? lastIndex : currentIndex - 1;
+      } else { // Tab normal (avançar)
+        nextIndex = currentIndex >= lastIndex ? 0 : currentIndex + 1;
+      }
+
+      e.preventDefault();
+      focusableElements[nextIndex].focus();
+    }
+  },
+
   // Menu de configurações
   openSettings() {
     this.settingsPopup.classList.add('open');
     this.settingsBtn.classList.add('rotated');
     this.settingsBtn.setAttribute('aria-expanded', 'true');
+    this.themeSetting.focus();
   },
   
   closeSettings() {
     this.settingsPopup.classList.remove('open');
     this.settingsBtn.classList.remove('rotated');
     this.settingsBtn.setAttribute('aria-expanded', 'false');
+    document.body.focus();
   },
   
   // Efeitos
