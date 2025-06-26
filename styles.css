@@ -78,6 +78,7 @@ body.light-theme {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 8px; 
 }
 
 .time-label {
@@ -94,6 +95,7 @@ body.light-theme {
   border: none;
   color: inherit;
   outline: none;
+  height: clamp(50px, 10vh, 80px); /* Altura responsiva para inputs */
 }
 
 .separator {
@@ -307,12 +309,106 @@ fieldset.timer:focus-within { outline: none; }
 
 /* ============ Proporções Verticais Agressivas (altura > 16/9 * largura) ============ */
 @media (max-aspect-ratio: 9/16) {
+  .input-scroll-wrap {
+    flex-direction: row; /* Manter input e barra lado a lado */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .scroll-button {
+    width: 25px;
+    height: 60%; /* Reduzir altura no mobile */
+    min-height: 50px;
+  }
+
   .container { padding-top: 3vh; padding-bottom: 3vh; }
   .timer-wrapper { gap: 2vh; }
   .timer { flex-direction: column; align-items: center; gap: 2vh; width: auto; }
   .time-group { display: flex; flex-direction: column; align-items: center; }
   .time-label { text-align: center; margin-bottom: 1vh; padding: 0; font-size: clamp(0.9rem, 2vw, 1.5rem); }
-  .time-input { text-align: center; font-size: clamp(4rem, 14vw, 10rem); width: auto; min-width: clamp(80px, 18vw, 150px); box-sizing: border-box; padding-left: 5px; padding-right: 5px; }
-  .separator { display: none; }
+  .time-input { text-align: center; font-size: clamp(4rem, 14vw, 10rem); width: clamp(50px, 12vw, 120px); min-width: clamp(80px, 18vw, 150px); box-sizing: border-box; padding-left: 5px; padding-right: 5px; }
   .fixed-footer { bottom: 16px; right: 16px; padding: 0; }
+}
+
+/* ============ Estilos para os botões de rolagem ============ */
+.input-scroll-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.scroll-button {
+  position: relative;
+  width: 25px;
+  height: 100%; /* Altura igual ao input */
+  min-height: 60px; /* Aumentar altura mínima */
+  background-color: #f0f0f0;
+  border: 2px solid #ccc;
+  border-radius: 15px;
+  cursor: ns-resize;
+  opacity: 0.2;
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.scroll-button:hover,
+.scroll-button.active {
+  opacity: 1;
+  background-color: #e0e0e0;
+  border-color: #007bff;
+}
+
+/* Estilo base para todas as linhas */
+.scroll-line, .secondary-line {
+  width: 80%;
+  height: 4px; /* Linha principal mais grossa */
+  background-color: #333;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%); /* Base para centralização horizontal */
+  border-radius: 2px;
+}
+
+/* Estilo da linha principal */
+.scroll-line {
+  height: 4px; /* Mais grossa */
+  background-color: #333;
+  transform: translate(-50%, var(--line-y, 0px)); 
+  z-index: 2; /* Para ficar acima das secundárias */
+  transition: transform 0.2s ease-out, background-color 0.3s ease;
+}
+
+.scroll-button.active .scroll-line {
+  background-color: #007bff;
+}
+
+/* Estilo das linhas secundárias */
+.secondary-line {
+  background-color: rgba(180, 180, 180, 0.5); /* Mais discreta */
+  height: 2px; /* Mais fina */
+  z-index: 1; /* Abaixo da principal */
+  opacity: 1; /* Sempre visível */
+  position: absolute; /* Para posicionamento absoluto dentro do scroll-button */
+  left: 50%;
+  top: 50%; /* Centraliza o ponto de origem verticalmente */
+  transform: translateX(-50%) translateY(calc(-50% + var(--line-offset-y, 0px))); /* Controlado por JS */
+  transition: transform 0.05s linear; /* Ajuste para movimento suave e constante */
+}
+
+body.timer-active .scroll-button {
+  cursor: default; /* Muda o cursor para indicar que não é clicável */
+  pointer-events: none; /* Impede todos os eventos de mouse no botão */
+}
+
+body.timer-active .scroll-button:hover,
+body.timer-active .scroll-button.active {
+  opacity: 0.2 !important; /* Força a opacidade para o estado inativo */
+  background-color: rgba(0, 0, 0, 0.1) !important; /* Força a cor de fundo transparente */
+  border-color: rgba(0, 0, 0, 0.1) !important; /* Força a cor da borda transparente */
 }

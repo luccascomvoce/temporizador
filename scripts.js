@@ -328,6 +328,15 @@ const TimerManager = {
     this.updateInputState();
     this.updateControls();
     this.updateSoundUI();
+    this.updateScrollButtonInteractionState();
+  },
+
+  updateScrollButtonInteractionState() { 
+    if (this.isRunning) {
+      document.body.classList.add('timer-active');
+    } else {
+      document.body.classList.remove('timer-active');
+    }
   },
   
   updateInputState() {
@@ -520,4 +529,204 @@ const TimerManager = {
 };
 
 // Inicializar quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => TimerManager.init());
+document.addEventListener('DOMContentLoaded', () => {
+  TimerManager.init();
+  initializeAllScrollButtons();
+});
+
+function initializeAllScrollButtons() {
+  const scrollButtons = document.querySelectorAll('.scroll-button');
+
+  scrollButtons.forEach(scrollButton => {
+    const input = scrollButton.parentElement.querySelector('.time-input');
+    const scrollLine = scrollButton.querySelector('.scroll-line');
+    const secondaryLinesContainer = scrollButton;
+    let secondaryLines = [];
+
+    let isDragging = false;
+    let startY = 0;
+    let currentLineY = 0;
+    let animationFrameId = null;
+    let lastUpdateTime = 0;
+    let lastInputUpdateTime = 0;
+
+    const MIN_VALUE = 0;
+    const MAX_VALUE = input.id === 'hours' ? 99 : 59;
+    const MIN_SPEED_HZ = 1;
+    const MAX_SPEED_HZ = 16;
+    const SCROLL_BUTTON_HEIGHT = scrollButton.offsetHeight;
+    const MAX_LINE_OFFSET = (SCROLL_BUTTON_HEIGHT / 2) - (scrollLine.offsetHeight / 2) - 2;
+
+    const LINE_SPACING = 15;
+    const VISIBLE_HEIGHT_BUFFER = 30;
+    const VISIBLE_AREA_TOP = -(SCROLL_BUTTON_HEIGHT / 2) - VISIBLE_HEIGHT_BUFFER;
+    const VISIBLE_AREA_BOTTOM = (SCROLL_BUTTON_HEIGHT / 2) + VISIBLE_HEIGHT_BUFFER;
+
+    function createSecondaryLine(offsetY) {
+      const line = document.createElement('div');
+      line.classList.add('secondary-line');
+      line.style.setProperty('--line-offset-y', `${offsetY}px`);
+      secondaryLinesContainer.appendChild(line);
+      return line;
+    }
+
+    function removeSecondaryLine(line) {
+      line.remove();
+    }
+
+    function initializeSecondaryLines() {
+      secondaryLinesContainer.querySelectorAll('.secondary-line').forEach(line => line.remove());
+      secondaryLines = [];
+
+      const totalRange = VISIBLE_AREA_BOTTOM - VISIBLE_AREA_TOP;
+      const numLinesToCreate = Math.ceil(totalRange / LINE_SPACING);
+      let initialY = VISIBLE_AREA_TOP;
+
+      for (let i = 0; i < numLinesToCreate; i++) {
+        secondaryLines.push(createSecondaryLine(initialY + (i * LINE_SPACING)));
+      }
+    }
+
+    function updateAnimation() {
+      const currentTime = performance.now();
+      const deltaTime = (currentTime - lastUpdateTime) / 1000;
+      lastUpdateTime = currentTime;
+
+      if (!isDragging && currentLineY !== 0) {
+        const returnSpeed = 1000;
+        const step = returnSpeed * deltaTime;
+
+        if (currentLineY > 0) {
+          currentLineY = Math.max(0, currentLineY - step);
+        } else {
+          currentLineY = Math.min(0, currentLineY + step);
+        }
+
+        if (Math.abs(currentLineY) < 1) {
+          currentLineY = 0;
+        }
+        scrollLine.style.setProperty('--line-y', `${currentLineY}px`);
+      }
+
+      if (isDragging) {
+        const distanceFactor = Math.min(1, Math.abs(currentLineY) / MAX_LINE_OFFSET);
+        const currentSpeedHz = MIN_SPEED_HZ + (MAX_SPEED_HZ - MIN_SPEED_HZ) * distanceFactor;
+        const movementDirection = currentLineY < 0 ? -1 : 1;
+        const movementDelta = (currentSpeedHz * LINE_SPACING) * deltaTime * movementDirection;
+
+        secondaryLines.forEach(line => {
+          let currentOffset = parseFloat(line.style.getPropertyValue('--line-offset-y'));
+          currentOffset += movementDelta;
+          line.style.setProperty('--line-offset-y', `${currentOffset}px`);
+        });
+
+        for (let i = secondaryLines.length - 1; i >= 0; i--) {
+          const line = secondaryLines[i];
+          const currentOffset = parseFloat(line.style.getPropertyValue('--line-offset-y'));
+
+          if (currentOffset < VISIBLE_AREA_TOP - LINE_SPACING) {
+            removeSecondaryLine(line);
+            secondaryLines.splice(i, 1);
+            const maxOffset = Math.max(...secondaryLines.map(l => parseFloat(l.style.getPropertyValue('--line-offset-y'))));
+            secondaryLines.push(createSecondaryLine(maxOffset + LINE_SPACING));
+          } else if (currentOffset > VISIBLE_AREA_BOTTOM + LINE_SPACING) {
+            removeSecondaryLine(line);
+            secondaryLines.splice(i, 1);
+            const minOffset = Math.min(...secondaryLines.map(l => parseFloat(l.style.getPropertyValue('--line-offset-y'))));
+            secondaryLines.unshift(createSecondaryLine(minOffset - LINE_SPACING));
+          }
+        }
+
+        const inputUpdateThreshold = 1 / currentSpeedHz;
+        if (currentTime - lastInputUpdateTime >= inputUpdateThreshold * 1000) {
+          let newValue = parseInt(input.value) || 0;
+          newValue = currentLineY < 0 ? newValue + 1 : newValue - 1;
+
+          if (newValue > MAX_VALUE) newValue = MIN_VALUE;
+          else if (newValue < MIN_VALUE) newValue = MAX_VALUE;
+
+          input.value = newValue.toString().padStart(2, '0');
+          lastInputUpdateTime = currentTime;
+        }
+      }
+
+      if (isDragging || currentLineY !== 0) {
+        animationFrameId = requestAnimationFrame(updateAnimation);
+      } else {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    }
+
+    scrollButton.addEventListener('mousedown', (e) => {
+      if (TimerManager.isRunning) { return; }
+      isDragging = true;
+      startY = e.clientY;
+      scrollButton.classList.add('active');
+      lastUpdateTime = performance.now();
+      lastInputUpdateTime = performance.now();
+
+      initializeSecondaryLines();
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(updateAnimation);
+      }
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const dragDelta = e.clientY - startY;
+      currentLineY = Math.max(-MAX_LINE_OFFSET, Math.min(MAX_LINE_OFFSET, dragDelta));
+      scrollLine.style.setProperty('--line-y', `${currentLineY}px`);
+
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(updateAnimation);
+      }
+      e.preventDefault();
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        scrollButton.classList.remove('active');
+      }
+    });
+
+    scrollButton.addEventListener('touchstart', (e) => {
+      if (TimerManager.isRunning) { return; }
+      isDragging = true;
+      startY = e.touches[0].clientY;
+      scrollButton.classList.add('active');
+      lastUpdateTime = performance.now();
+      lastInputUpdateTime = performance.now();
+
+      initializeSecondaryLines();
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(updateAnimation);
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+
+      const dragDelta = e.touches[0].clientY - startY;
+      currentLineY = Math.max(-MAX_LINE_OFFSET, Math.min(MAX_LINE_OFFSET, dragDelta));
+      scrollLine.style.setProperty('--line-y', `${currentLineY}px`);
+
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(updateAnimation);
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+      if (isDragging) {
+        isDragging = false;
+        scrollButton.classList.remove('active');
+      }
+    });
+  initializeSecondaryLines();
+  });
+}

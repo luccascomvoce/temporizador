@@ -8,7 +8,8 @@
   <title>Temporizador</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="styles.css">
-<link rel="manifest" href="manifest.json" />  <script src="scripts.js" defer></script>
+  <link rel="manifest" href="manifest.json" />
+  <script src="scripts.js" defer></script>
 </head>
 <body tabindex="-1">
   <div class="container">
@@ -17,17 +18,30 @@
         <legend class="sr-only">Definir Tempo do Temporizador</legend>
         <div class="time-group">
           <label for="hours" class="time-label">horas</label>
-          <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+          <div class="input-scroll-wrap">
+            <input type="text" class="time-input" id="hours" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+            <div class="scroll-button">
+              <div class="scroll-line"></div>
+            </div>
+          </div>
         </div>
-        <div class="separator" aria-hidden="true">:</div>
         <div class="time-group">
           <label for="minutes" class="time-label">minutos</label>
-          <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+          <div class="input-scroll-wrap">
+            <input type="text" class="time-input" id="minutes" value="00" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+            <div class="scroll-button">
+              <div class="scroll-line"></div>
+            </div>
+          </div>
         </div>
-        <div class="separator" aria-hidden="true">:</div>
         <div class="time-group">
           <label for="seconds" class="time-label">segundos</label>
-          <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+          <div class="input-scroll-wrap">
+            <input type="text" class="time-input" id="seconds" value="30" maxlength="2" inputmode="numeric" pattern="[0-9]*">
+            <div class="scroll-button">
+              <div class="scroll-line"></div>
+            </div>
+          </div>
         </div>
       </fieldset>
       <button id="toggle" class="toggle-btn" aria-label="Iniciar ou pausar cronômetro"></button>
