@@ -412,3 +412,13 @@ body.timer-active .scroll-button.active {
   background-color: rgba(0, 0, 0, 0.1) !important; /* Força a cor de fundo transparente */
   border-color: rgba(0, 0, 0, 0.1) !important; /* Força a cor da borda transparente */
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.timer-shake {
+  animation: shake 0.5s ease-in-out;
+}

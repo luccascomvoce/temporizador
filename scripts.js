@@ -48,6 +48,7 @@ const TimerManager = {
     this.soundSettingText = document.getElementById('soundSettingText');
     this.soundOnIcon = document.querySelector('.sound-on-icon');
     this.soundOffIcon = document.querySelector('.sound-off-icon');
+    this.timerWrapper = document.querySelector('.timer-wrapper');
   },
 
   // Configurar event listeners
@@ -288,6 +289,10 @@ const TimerManager = {
       this.timerStatus.textContent = 'O temporizador começou.';
       this.timerInterval = setInterval(() => this.decrement(), 1000);
     } else {
+      this.timerWrapper.classList.add('timer-shake');
+      setTimeout(() => {
+        this.timerWrapper.classList.remove('timer-shake');
+      }, 500);
       this.timerStatus.textContent = "Defina um tempo válido para iniciar.";
     }
 
