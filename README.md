@@ -1,5 +1,7 @@
+![Sem título_20250627_124302](https://github.com/user-attachments/assets/88d54352-7ed4-4195-999c-d6d380d943c9)
+
 Temporizador feito por IA usando HTML, CSS e JS. Os principais recursos são:
-1. Temas claro e escuro
+1. Temas claro e escuro.
 2. Diferentes formas de ajustar os tempos:
    a) girando a roda do mouse sobre o campo desejado;
    b) usando as setas do teclado;
