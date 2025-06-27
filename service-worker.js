@@ -14,12 +14,12 @@ const urlsToCache = [
 
   // Ícones do manifesto que o PWA Builder gerou
   // Certifique-se de que esses arquivos existam na pasta 'images'
-  '/images/icon-48x48.png',
-  '/images/icon-72x72.png',
-  '/images/icon-96x96.png',
-  '/images/icon-144x144.png',
-  '/images/icon-192x192.png',
-  '/images/icon-512x512.png',
+  '/temporizador/images/icon-48x48.png',
+  '/temporizador/images/icon-72x72.png',
+  '/temporizador/images/icon-96x96.png',
+  '/temporizador/images/icon-144x144.png',
+  '/temporizador/images/icon-192x192.png',
+  '/temporizador/images/icon-512x512.png',
 
   // Recursos externos que seu app utiliza
   // Certifique-se de que estas URLs estão corretas e acessíveis
