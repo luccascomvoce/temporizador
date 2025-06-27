@@ -46,10 +46,10 @@ const getFixedUrl = (req) => {
     // Garante que a URL use o mesmo protocolo (http/https) que a localização atual
     url.protocol = self.location.protocol;
 
-    // Adiciona um parâmetro de cache-bust para URLs do próprio domínio
+    /* Adiciona um parâmetro de cache-bust para URLs do próprio domínio
     if (url.hostname === self.location.hostname) {
         url.search += (url.search ? '&' : '?') + 'cache-bust=' + now;
-    }
+    }*/
     return url.href;
 };
 
@@ -108,7 +108,7 @@ self.addEventListener('fetch', (event) => {
     if (HOSTNAME_WHITELIST.indexOf(new URL(event.request.url).hostname) > -1) {
         const cached = caches.match(event.request); // Tenta encontrar no cache
         const fixedUrl = getFixedUrl(event.request); // Obtém a URL com cache-bust
-        const fetched = fetch(fixedUrl, { cache: 'no-store' }); // Tenta buscar da rede (sem cache HTTP)
+        const fetched = fetch(fixedUrl); // Tenta buscar da rede (permite cache HTTP)
         const fetchedCopy = fetched.then(resp => resp.clone()); // Cria uma cópia da resposta para cachear
 
         // Responde com o que vier primeiro: cache ou rede.
