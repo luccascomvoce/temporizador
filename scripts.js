@@ -61,28 +61,7 @@ const TimerManager = {
         e.preventDefault();
         this.modifyInput(input, e.deltaY > 0 ? -1 : 1);
       });
-      
-      input.addEventListener('touchstart', e => {
-        this.startY = e.touches[0].clientY;
-        isSwiping = false;
-      });
-      
-      input.addEventListener('touchmove', e => {
-        if (this.isRunning) return;
-        const currentY = e.touches[0].clientY;
-        const deltaY = this.startY - currentY;
-        if (Math.abs(deltaY) > 10) {
-          isSwiping = true;
-          e.preventDefault();
-          this.modifyInput(input, deltaY > 0 ? 1 : -1);
-          this.startY = currentY;
-        }
-      }, { passive: false });
-      
-      input.addEventListener('touchend', e => {
-        if (isSwiping) e.preventDefault();
-      });
-      
+
       input.addEventListener('keydown', e => {
         if (!this.isRunning) {
           switch (e.key) {
