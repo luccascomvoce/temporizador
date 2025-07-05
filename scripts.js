@@ -674,6 +674,9 @@ function initializeAllScrollButtons() {
       if (isDragging) {
         isDragging = false;
         scrollButton.classList.remove('active');
+        if (!animationFrameId) {
+          animationFrameId = requestAnimationFrame(updateAnimation);
+        }
       }
     });
 
@@ -709,6 +712,9 @@ function initializeAllScrollButtons() {
       if (isDragging) {
         isDragging = false;
         scrollButton.classList.remove('active');
+        if (!animationFrameId) {
+          animationFrameId = requestAnimationFrame(updateAnimation);
+        }
       }
     });
   initializeSecondaryLines();
